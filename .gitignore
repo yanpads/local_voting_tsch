@@ -9,3 +9,6 @@
 Thumbs.db
 *.templog
 /bin/templog.txt
+.eric6project
+bin/tmp.out
+otp simulator.e4p

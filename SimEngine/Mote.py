@@ -437,6 +437,9 @@ class Mote(object):
         
         with self.dataLock:
             
+
+            print "time: %s from: %s queue: %s period %s schedule: %s" % (self.engine.asn, self.id, len(self.txQueue), self.pkPeriod, sum(v['dir'] == 'TX' for v in self.schedule.values()))
+
             # calculate the "moving average" incoming traffic, in pkts since last cycle, per neighbor
                 
             # collect all neighbors I have RX cells to
@@ -945,7 +948,6 @@ class Mote(object):
     #===== tsch
     
     def _tsch_enqueue(self,packet):
-        
         if not self.preferredParent:
             # I don't have a route
             
