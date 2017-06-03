@@ -168,7 +168,7 @@ class Mote(object):
             delay            = self.pkPeriod*(1+random.uniform(-self.settings.pkPeriodVar,self.settings.pkPeriodVar))            
         else:
             # compute initial time within the range of [next asn, next asn+pkPeriod]
-            delay            = self.settings.slotDuration + self.pkPeriod*random.random()
+            delay            = 5 + self.settings.slotDuration + self.pkPeriod*random.random()
             
         assert delay>0    
         

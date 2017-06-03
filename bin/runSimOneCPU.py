@@ -112,14 +112,16 @@ def parseCliOptions():
         dest       = 'burstTimestamp',
         nargs      = '+',
         type       = float,
-        default    = 20,
+        # default    = 20,
+        default    = None,
         help       = '[app] Timestamp when the burst happens (s).',
     )
     parser.add_argument( '--numPacketsBurst',
         dest       = 'numPacketsBurst',
         nargs      = '+',
         type       = int,
-        default    = 5,
+        # default    = 5,
+        default = None,
         help       = '[app] Number of packets in a burst, per node.',
     )
     # rpl
@@ -232,6 +234,7 @@ def runSims(options):
                 simParam[k] = v
         simParams      += [simParam]
     
+    print simParams
     # run a simulation for each set of simParams
     for (simParamNum,simParam) in enumerate(simParams):
         
