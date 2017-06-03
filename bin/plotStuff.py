@@ -104,17 +104,24 @@ def binDataFiles():
                     pkPeriod     = float(m.group(1))
                 else:
                     pkPeriod     = 'NA'
-            if (otfThreshold,pkPeriod) not in dataBins:
-                dataBins[(otfThreshold,pkPeriod)] = []
-            dataBins[(otfThreshold,pkPeriod)] += [infilepath]
+                # algorithm
+                m = re.search('algorithm\s+=\s+(.+)',line)
+                if m:
+                    algorithm     = m.group(1)
+                print "LLLLLLL: %s, --> %s |||||| %s " % (line, m, algorithm)
+          
+            if (otfThreshold,pkPeriod,algorithm) not in dataBins:
+                dataBins[(otfThreshold,pkPeriod,algorithm)] = []
+            dataBins[(otfThreshold,pkPeriod,algorithm)] += [infilepath]
     
     output  = []
-    for ((otfThreshold,pkPeriod),filepaths) in dataBins.items():
-        output         += ['otfThreshold={0} pkPeriod={1}'.format(otfThreshold,pkPeriod)]
+    for ((otfThreshold,pkPeriod,algorithm),filepaths) in dataBins.items():
+        output         += ['otfThreshold={0} pkPeriod={1} algorithm={2}'.format(otfThreshold,pkPeriod,algorithm)]
         for f in filepaths:
             output     += ['   {0}'.format(f)]
     output  = '\n'.join(output)
-    
+
+    print "OUTPUT: %s" % output
     return dataBins
 
 def gatherPerRunData(infilepaths,elemName):
@@ -231,7 +238,7 @@ def calcMeanConfInt(vals):
     return (m,confint)
 
 def getSlotDuration(dataBins):
-    for ((otfThreshold,pkPeriod),filepaths) in dataBins.items():
+    for ((otfThreshold,pkPeriod,algorithm),filepaths) in dataBins.items():
         for filepath in filepaths:
             with open(filepath,'r') as f:
                 for line in f:
@@ -248,8 +255,10 @@ def plot_vs_time(plotData,ymin=None,ymax=None,ylabel=None,filename=None,doPlot=T
     
     #===== format data
     
+    print plotData.items()
+    
     # calculate mean and confidence interval
-    for ((otfThreshold,pkPeriod),perCycleData) in plotData.items():
+    for ((otfThreshold,pkPeriod,algorithm),perCycleData) in plotData.items():
         for cycle in perCycleData.keys():
             (m,confint) = calcMeanConfInt(perCycleData[cycle])
             perCycleData[cycle] = {
@@ -265,13 +274,13 @@ def plot_vs_time(plotData,ymin=None,ymax=None,ylabel=None,filename=None,doPlot=T
     # }
     
     # arrange to be plotted
-    for ((otfThreshold,pkPeriod),perCycleData) in plotData.items():
+    for ((otfThreshold,pkPeriod,algorithm),perCycleData) in plotData.items():
         x     = sorted(perCycleData.keys())
         y     = [perCycleData[i]['mean']    for i in x]
         yerr  = [perCycleData[i]['confint'] for i in x]
         assert len(x)==len(y)==len(yerr)
         
-        plotData[(otfThreshold,pkPeriod)] = {
+        plotData[(otfThreshold,pkPeriod,algorithm)] = {
             'x':        x,
             'y':        y,
             'yerr':     yerr,
@@ -297,11 +306,14 @@ def plot_vs_time(plotData,ymin=None,ymax=None,ylabel=None,filename=None,doPlot=T
     
     pkPeriods           = []
     otfThresholds       = []
-    for (otfThreshold,pkPeriod) in plotData.keys():
+    algorithms          = []
+    for (otfThreshold,pkPeriod,algorithm) in plotData.keys():
         pkPeriods      += [pkPeriod]
         otfThresholds  += [otfThreshold]
+        algorithms     += [algorithm]
     pkPeriods           = sorted(list(set(pkPeriods)))
     otfThresholds       = sorted(list(set(otfThresholds)), reverse=True)
+    algorithms          = sorted(list(set(algorithms)), reverse=True)
     
     fig = matplotlib.pyplot.figure()
     
@@ -339,17 +351,17 @@ def plot_vs_time(plotData,ymin=None,ymax=None,ylabel=None,filename=None,doPlot=T
         ax.set_xlim(xmin=0,xmax=100)
         ax.set_ylim(ymin=ymin,ymax=ymax)
         plots = []
-        for th in otfThresholds:
-            for ((otfThreshold,pkPeriod),data) in plotData.items():
-                if otfThreshold==th:
+        for th in algorithms:
+            for ((otfThreshold,pkPeriod,algorithm),data) in plotData.items():
+                if algorithm==th:
                     plots += [
                         ax.errorbar(
                             x        = data['x'],
                             y        = data['y'],
                             yerr     = data['yerr'],
-                            color    = COLORS_TH[th],
-                            ls       = LINESTYLE_TH[th],
-                            ecolor   = ECOLORS_TH[th],
+                            color    = COLORS_TH[th=='otf'],
+                            ls       = LINESTYLE_TH[th=='otf'],
+                            ecolor   = ECOLORS_TH[th=='otf'],
                         )
                     ]
         legendPlots = tuple(plots)
@@ -364,7 +376,8 @@ def plot_vs_time(plotData,ymin=None,ymax=None,ylabel=None,filename=None,doPlot=T
     allaxes[int(len(allaxes)/2)].set_ylabel(ylabel)
     
     # add legend
-    legendText = tuple(['OTF threshold {0} cells'.format(t) for t in otfThresholds])
+    legendText = tuple(['{0}'.format(t) for t in algorithms])
+
     fig.legend(
         legendPlots,
         legendText,
@@ -395,7 +408,7 @@ def plot_vs_threshold(plotData,ymin,ymax,ylabel,filename):
             f.write(pp.pformat(plotData))
     
     # collapse all cycles
-    for ((otfThreshold,pkPeriod),perCycleData) in plotData.items():
+    for ((otfThreshold,pkPeriod,algorithm),perCycleData) in plotData.items():
         temp = []
         for (k,v) in perCycleData.items():
             temp += v
@@ -418,9 +431,10 @@ def plot_vs_threshold(plotData,ymin,ymax,ylabel,filename):
             f.write(pp.pformat(plotData))
     
     # calculate mean and confidence interval
-    for ((otfThreshold,pkPeriod),perCycleData) in plotData.items():
+    for ((otfThreshold,pkPeriod,algorithm),perCycleData) in plotData.items():
+        print "CCCCCCCCCCCCCC: %s" % perCycleData
         (m,confint) = calcMeanConfInt(perCycleData)
-        plotData[(otfThreshold,pkPeriod)] = {
+        plotData[(otfThreshold,pkPeriod,algorithm)] = {
             'mean':      m,
             'confint':   confint,
         }
@@ -480,8 +494,8 @@ def gather_latency_data(dataBins):
     
     # gather raw data
     plotData  = {}
-    for ((otfThreshold,pkPeriod),filepaths) in dataBins.items():
-        plotData[(otfThreshold,pkPeriod)] = gatherPerCycleData(filepaths,'aveLatency')
+    for ((otfThreshold,pkPeriod,algorithm),filepaths) in dataBins.items():
+        plotData[(otfThreshold,pkPeriod,algorithm)] = gatherPerCycleData(filepaths,'aveLatency')
     
     # plotData = {
     #     (otfThreshold,pkPeriod) = {
@@ -497,7 +511,7 @@ def gather_latency_data(dataBins):
     
     # convert slots to seconds
     slotDuration = getSlotDuration(dataBins)
-    for ((otfThreshold,pkPeriod),perCycleData) in plotData.items():
+    for ((otfThreshold,pkPeriod,algorithm),perCycleData) in plotData.items():
         for cycle in perCycleData.keys():
             perCycleData[cycle] = [d*slotDuration for d in perCycleData[cycle]]
     
@@ -514,7 +528,7 @@ def gather_latency_data(dataBins):
             f.write(pp.pformat(plotData))
     
     # filter out 0 values
-    for ((otfThreshold,pkPeriod),perCycleData) in plotData.items():
+    for ((otfThreshold,pkPeriod,algorithm),perCycleData) in plotData.items():
         for cycle in perCycleData.keys():
             i=0
             while i<len(perCycleData[cycle]):
@@ -569,7 +583,7 @@ def gather_numCells_data(dataBins):
     
     # gather raw data
     plotData  = {}
-    for ((otfThreshold,pkPeriod),filepaths) in dataBins.items():
+    for ((otfThreshold,pkPeriod,algorithm),filepaths) in dataBins.items():
         plotData[(otfThreshold,pkPeriod)] = gatherPerCycleData(filepaths,'numTxCells')
     
     # plotData = {
@@ -1186,19 +1200,19 @@ def main():
     
     # latency
     plot_latency_vs_time(dataBins)
-    plot_latency_vs_threshold(dataBins)
+#    plot_latency_vs_threshold(dataBins)
     
     # numCells
-    plot_numCells_vs_time(dataBins)
-    plot_numCells_vs_threshold(dataBins)
-    plot_numCells_otfActivity_vs_time(dataBins)
+#    plot_numCells_vs_time(dataBins)
+#    plot_numCells_vs_threshold(dataBins)
+#    plot_numCells_otfActivity_vs_time(dataBins)
     
     # otfActivity
-    plot_otfActivity_vs_time(dataBins)
-    plot_otfActivity_vs_threshold(dataBins)
+#    plot_otfActivity_vs_time(dataBins)
+#    plot_otfActivity_vs_threshold(dataBins)
     
     # reliability
-    plot_reliability_vs_threshold(dataBins)
+#    plot_reliability_vs_threshold(dataBins)
 
 if __name__=="__main__":
     main()

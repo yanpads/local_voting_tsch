@@ -425,11 +425,43 @@ class Mote(object):
         
         self.engine.scheduleIn(
             delay       = self.otfHousekeepingPeriod*(0.9+0.2*random.random()),
-            cb          = self._otf_action_housekeeping,
+            cb          = self._lv_action_housekeeping if self.settings.algorithm == 'local_voting' else self._otf_action_housekeeping,
             uniqueTag   = (self.id,'_otf_action_housekeeping'),
             priority    = 4,
         )
-    
+
+    def _lv_action_housekeeping(self):
+        '''
+        OTF algorithm: decides when to add/delete cells.
+        '''
+
+        with self.dataLock:
+
+            gamma = 1.0
+            neighbors = self._myNeigbors()
+            alpha = 1 # This should be changed later
+            p = [ sum(v['dir'] == 'TX' for v in n.schedule.values()) for n in neighbors ]
+            p_i = sum(v['dir'] == 'TX' for v in self.schedule.values())
+            q = [ len(n.txQueue)  for n in neighbors ]
+            q_i = len(self.txQueue)
+            b = [ alpha * max(1,q_i) / max(1,q_j) for q_j in q ]
+            u = map(lambda b_j, p_j: int(math.ceil(gamma * b_j * (p_j - p_i))), b, p)
+
+            # list(map(lambda n: n.id,self._myNeigbors())),
+            print "time: %s from: %s queue: %s period %s schedule: %s (%s)" % (self.engine.asn, self.id, q_i, self.pkPeriod, p_i, u)
+
+            for n, u, p_j in zip(neighbors, u, p):
+                if p_i == 0:
+                    self._sixtop_cell_reservation_request(n, 1)
+                else:
+                    if u > 0:
+                        self._sixtop_cell_reservation_request(n, u)
+                    elif u < 0 and p_j > 0:
+                        self._sixtop_removeCells(n, max(p_j,u))
+
+            # schedule next housekeeping
+            self._otf_schedule_housekeeping()
+
     def _otf_action_housekeeping(self):
         '''
         OTF algorithm: decides when to add/delete cells.

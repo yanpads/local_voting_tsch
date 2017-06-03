@@ -136,7 +136,8 @@ def parseCliOptions():
         dest       = 'otfThreshold',
         nargs      = '+',
         type       = int,
-        default    = [1,4,8],
+        # default    = [1,4,8],
+        default    = [1],
         help       = '[otf] OTF threshold (cells).',
     )
     parser.add_argument( '--otfHousekeepingPeriod',
@@ -204,6 +205,13 @@ def parseCliOptions():
         type       = int,
         default    = 0,
         help       = '[phy] Disable interference model.',
+    )
+    parser.add_argument('--algorithm',
+        dest       = 'algorithm',
+        nargs      = '+',
+        type       = str,
+        default    = ['otf', 'local_voting'],
+        help       = 'Select the load balancing algorithm, "otf" or "local_voting"',
     )
     
     options        = parser.parse_args()
