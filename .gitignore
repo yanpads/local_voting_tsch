@@ -6,6 +6,7 @@
 *.png
 *.eps
 *.zip
+*.swp
 Thumbs.db
 *.templog
 /bin/templog.txt

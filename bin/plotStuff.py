@@ -227,7 +227,7 @@ def gatherPerCycleData(infilepaths,elemName):
 def calcMeanConfInt(vals):
     assert type(vals)==list
     for val in vals:
-        assert type(val) in [int,float]
+        assert type(val) in [int,float,numpy.float64]
     
     a         = 1.0*numpy.array(vals)
     se        = scipy.stats.sem(a)
@@ -253,8 +253,6 @@ def plot_vs_time(plotData,ymin=None,ymax=None,ylabel=None,filename=None,doPlot=T
     prettyp   = False
     
     #===== format data
-    
-    print plotData.items()
     
     # calculate mean and confidence interval
     for ((otfThreshold,pkPeriod,algorithm),perCycleData) in plotData.items():
@@ -431,7 +429,6 @@ def plot_vs_threshold(plotData,ymin,ymax,ylabel,filename):
     
     # calculate mean and confidence interval
     for ((otfThreshold,pkPeriod,algorithm),perCycleData) in plotData.items():
-        print "CCCCCCCCCCCCCC: %s" % perCycleData
         (m,confint) = calcMeanConfInt(perCycleData)
         plotData[(otfThreshold,pkPeriod,algorithm)] = {
             'mean':      m,
@@ -557,7 +554,7 @@ def plot_latency_vs_time(dataBins):
     plot_vs_time(
         plotData = plotData,
         ymin     = 0,
-        ymax     = 8,
+        ymax     = 18,
         ylabel   = 'end-to-end latency (s)',
         filename = 'latency_vs_time',
     )
@@ -1021,7 +1018,50 @@ def plot_otfActivity_vs_threshold(dataBins):
         filename   = 'otfActivity_vs_threshold',
     )
 
+
 #===== reliability
+
+def plot_reliability_vs_time(dataBins):
+
+    prettyp = True
+
+    #===== gather data
+
+    for val_str in 'appGenerated', 'appReachesDagroot', 'txQueueFill':
+
+        # gather raw add/remove data
+        plotdata    = {}
+        for ((otfThreshold,pkPeriod,algorithm),filepaths) in dataBins.items():
+            plotdata[(otfThreshold,pkPeriod,algorithm)] = {
+                i: list(k) for i,k in enumerate(
+                    zip(*gatherPerRunData(filepaths, val_str).values())
+                )
+            }
+
+        plot_vs_time(
+            plotData = plotdata,
+            ymin     = 0,
+            ymax     = 50,
+            ylabel   = val_str,
+            filename = val_str + '_vs_time',
+        )
+
+        plotdataCum = {}
+        for ((otfThreshold,pkPeriod,algorithm),filepaths) in dataBins.items():
+            plotdataCum[(otfThreshold,pkPeriod,algorithm)] = {
+                i: list(k) for i,k in enumerate(
+                   zip(*map(numpy.cumsum,
+                            gatherPerRunData(filepaths, val_str).values()))
+                )
+            }
+
+        plot_vs_time(
+            plotData = plotdataCum,
+            ymin     = 0,
+            ymax     = 400,
+            ylabel   = val_str + 'Cum',
+            filename = val_str + '_cum_vs_time',
+        )
 
 def plot_reliability_vs_threshold(dataBins):
     
@@ -1212,6 +1252,7 @@ def main():
     
     # reliability
 #    plot_reliability_vs_threshold(dataBins)
+    plot_reliability_vs_time(dataBins)
 
 if __name__=="__main__":
     main()
