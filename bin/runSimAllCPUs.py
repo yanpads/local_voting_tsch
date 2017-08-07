@@ -10,7 +10,7 @@ import time
 import math
 import multiprocessing
 
-MIN_TOTAL_RUNRUNS = 100
+MIN_TOTAL_RUNRUNS = 8 # 100
 
 def runOneSim(params):
     (cpuID,numRuns) = params
