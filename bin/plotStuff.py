@@ -108,7 +108,6 @@ def binDataFiles():
                 m = re.search('algorithm\s+=\s+(.+)',line)
                 if m:
                     algorithm     = m.group(1)
-                print "LLLLLLL: %s, --> %s |||||| %s " % (line, m, algorithm)
           
             if (otfThreshold,pkPeriod,algorithm) not in dataBins:
                 dataBins[(otfThreshold,pkPeriod,algorithm)] = []

@@ -448,7 +448,7 @@ class Mote(object):
             u = map(lambda b_j, p_j: int(math.ceil(gamma * b_j * (p_j - p_i))), b, p)
 
             # list(map(lambda n: n.id,self._myNeigbors())),
-            print "time: %s from: %s queue: %s period %s schedule: %s (%s)" % (self.engine.asn, self.id, q_i, self.pkPeriod, p_i, u)
+# print "time: %s from: %s queue: %s period %s schedule: %s (%s)" % (self.engine.asn, self.id, q_i, self.pkPeriod, p_i, u)
 
             for n, u, p_j in zip(neighbors, u, p):
                 if p_i == 0:
@@ -470,7 +470,7 @@ class Mote(object):
         with self.dataLock:
             
 
-            print "time: %s from: %s queue: %s period %s schedule: %s" % (self.engine.asn, self.id, len(self.txQueue), self.pkPeriod, sum(v['dir'] == 'TX' for v in self.schedule.values()))
+# print "time: %s from: %s queue: %s period %s schedule: %s" % (self.engine.asn, self.id, len(self.txQueue), self.pkPeriod, sum(v['dir'] == 'TX' for v in self.schedule.values()))
 
             # calculate the "moving average" incoming traffic, in pkts since last cycle, per neighbor
                 
