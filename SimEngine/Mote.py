@@ -487,7 +487,7 @@ class Mote(object):
                 elif p_ij > 0:
 #                   print "Trying to remove p= ", p_ij, " cells from [",self.id,",",dest.id,"]"
 
-                    self._sixtop_removeCells(dest, 1)
+                    self._sixtop_removeCells(dest, p_ij)
                     
                 # list(map(lambda n: n.id,self._myNeigbors())),
 #                print "time: %s src: %s dst: %s queue: %s schedule: %s (%s)" % (self.engine.asn, self.id, dest.id, q_ij, p_ij, u_ij)

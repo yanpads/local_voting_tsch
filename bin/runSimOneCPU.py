@@ -143,7 +143,7 @@ def parseCliOptions():
     parser.add_argument( '--otfHousekeepingPeriod',
         dest       = 'otfHousekeepingPeriod',
         type       = float,
-        default    = 5.0,
+        default    = 1.0, # was 5.0
         help       = '[otf] OTF housekeeping period (s).',
     )
     # sixtop
