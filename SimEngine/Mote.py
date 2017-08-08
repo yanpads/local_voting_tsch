@@ -455,7 +455,7 @@ class Mote(object):
 
             for dest in outgoing_links:
                 q_ij = len(self.txQueue) # all packets go to the same uplink
-                p_ij = sum(v['dir'] == 'TX' for v in self.schedule.values())
+                p_ij = sum(v['dir'] == 'TX' and v['neighbor'] == dest for v in self.schedule.values())
 
                 u_ij = None # So the variable exists
 #               print "time: %s src: %s dst: %s queue: %s schedule: %s (%s)" % (self.engine.asn, self.id, dest.id, q_ij, p_ij, u_ij)
