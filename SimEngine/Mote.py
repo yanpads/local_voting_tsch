@@ -208,10 +208,10 @@ class Mote(object):
         self._app_schedule_sendSinglePacket()
     
     def _app_action_enqueueData(self):
-        ''' enqueue data packet into stack '''
+            ''' enqueue data packet into stack '''
         
-        # only start sending data if I have some TX cells
-        if self.getTxCells():
+            # only start sending data if I have some TX cells
+            #         if self.getTxCells():
             
             # create new packet
             newPacket = {
@@ -440,24 +440,57 @@ class Mote(object):
             gamma = 1.0
             neighbors = self._myNeigbors()
             alpha = 1 # This should be changed later
-            p = [ sum(v['dir'] == 'TX' for v in n.schedule.values()) for n in neighbors ]
-            p_i = sum(v['dir'] == 'TX' for v in self.schedule.values())
-            q = [ len(n.txQueue)  for n in neighbors ]
-            q_i = len(self.txQueue)
-            b = [ alpha * max(1,q_i) / max(1,q_j) for q_j in q ]
-            u = map(lambda b_j, p_j: int(math.ceil(gamma * b_j * (p_j - p_i))), b, p)
+#             print "We are at node ", self.id
+#            print "Total slots are", self.settings.slotframeLength
 
-            # list(map(lambda n: n.id,self._myNeigbors())),
-# print "time: %s from: %s queue: %s period %s schedule: %s (%s)" % (self.engine.asn, self.id, q_i, self.pkPeriod, p_i, u)
+            p_sum = self.settings.slotframeLength
 
-            for n, u, p_j in zip(neighbors, u, p):
-                if p_i == 0:
-                    self._sixtop_cell_reservation_request(n, 1)
-                else:
-                    if u > 0:
-                        self._sixtop_cell_reservation_request(n, u)
-                    elif u < 0 and p_j > 0:
-                        self._sixtop_removeCells(n, max(p_j,u))
+            transmittd=set()
+
+#            print "The queue is: ", self.txQueue
+#             print "Outgoing links are", self.parentSet
+#           print "But all outgoing packets got to", self.preferredParent
+            # outgoing_links = self.parentSet
+            outgoing_links = set([self.preferredParent] if self.preferredParent else [])
+
+            for dest in outgoing_links:
+                q_ij = len(self.txQueue) # all packets go to the same uplink
+                p_ij = sum(v['dir'] == 'TX' for v in self.schedule.values())
+
+                u_ij = None # So the variable exists
+#               print "time: %s src: %s dst: %s queue: %s schedule: %s (%s)" % (self.engine.asn, self.id, dest.id, q_ij, p_ij, u_ij)
+                if q_ij > 0:
+                    q_sum = q_ij
+
+                    counted_links = set()
+                    # Traffic send by dest's neighbors should be counted
+                    for n in dest._myNeigbors():
+                        if n != self:
+                            q_sum += len(n.txQueue)
+                            counted_links.add((n, n.preferredParent))
+
+                    # Traffic received by our neighbors should counted, but only
+                    # if not counted previously
+                    for n in self._myNeigbors():
+                        src = next((x for x in n._myNeigbors() if x.preferredParent == n), None)
+                        if src and src != self and (src,n) not in counted_links:
+                           q_sum += len(src.txQueue)
+
+                    u_ij = int(round(q_ij * p_sum / (1.0 * q_sum))) - p_ij
+
+                    if u_ij > 0:
+#        print "Trying to add u= ", u_ij, " cells for [",self.id,",",dest.id,"]"
+                        self._sixtop_cell_reservation_request(dest, u_ij)
+                    elif u_ij < 0:
+#                       print "Trying to remove u= ", -u_ij, " cells from [",self.id,",",dest.id,"]"
+                        self._sixtop_removeCells(dest, -u_ij)
+                elif p_ij > 0:
+#                   print "Trying to remove p= ", p_ij, " cells from [",self.id,",",dest.id,"]"
+
+                    self._sixtop_removeCells(dest, p_ij)
+                    
+                # list(map(lambda n: n.id,self._myNeigbors())),
+#                print "time: %s src: %s dst: %s queue: %s schedule: %s (%s)" % (self.engine.asn, self.id, dest.id, q_ij, p_ij, u_ij)
 
             # schedule next housekeeping
             self._otf_schedule_housekeeping()
@@ -987,14 +1020,16 @@ class Mote(object):
             self._stats_incrementMoteStats('droppedNoRoute')
             
             return False
-        
-        elif not self.getTxCells():
-            # I don't have any transmit cells
-            
-            # increment mote state
-            self._stats_incrementMoteStats('droppedNoTxCells')
-
-            return False
+ 
+#  Remove this condindition, we keep packets until we get our slot
+#
+#        elif not self.getTxCells():
+#            # I don't have any transmit cells
+#            
+#            # increment mote state
+#            self._stats_incrementMoteStats('droppedNoTxCells')
+#
+#            return False
         
         elif len(self.txQueue)==self.TSCH_QUEUE_SIZE:
             # my TX queue is full
