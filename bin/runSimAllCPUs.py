@@ -11,7 +11,7 @@ import math
 import multiprocessing
 import fileinput
 
-MIN_TOTAL_RUNRUNS = 47 # 94 # 500
+MIN_TOTAL_RUNRUNS = 500
 
 def runOneSim(params):
     (cpuID,numRuns,host) = params

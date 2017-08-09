@@ -66,7 +66,7 @@ class Mote(object):
     OTF_TRAFFIC_SMOOTHING              = 0.5
     #=== 6top
     #=== tsch
-    TSCH_QUEUE_SIZE                    = 10
+    TSCH_QUEUE_SIZE                    = 100
     TSCH_MAXTXRETRIES                  = 5    
     #=== radio
     RADIO_MAXDRIFT                     = 30 # in ppm
@@ -454,12 +454,23 @@ class Mote(object):
             outgoing_links = set([self.preferredParent] if self.preferredParent else [])
 
             for dest in outgoing_links:
+
                 q_ij = len(self.txQueue) # all packets go to the same uplink
                 p_ij = sum(v['dir'] == 'TX' and v['neighbor'] == dest for v in self.schedule.values())
 
                 u_ij = None # So the variable exists
 #               print "time: %s src: %s dst: %s queue: %s schedule: %s (%s)" % (self.engine.asn, self.id, dest.id, q_ij, p_ij, u_ij)
                 if q_ij > 0:
+                    availableTimeslots = set(range(self.settings.slotframeLength))-set(dest.schedule.keys())-set(self.schedule.keys())
+#                    print "Available timeslots1: {0}".format(availableTimeslots)
+                    availableTimeslots -= set(sum([n.schedule.keys() for n in dest._myNeigbors()],[]))
+#                    print "Available timeslotsi2: {0}".format(availableTimeslots)
+                    available_slot_count = len(availableTimeslots)
+
+                    toadd = min(available_slot_count, q_ij) - p_ij
+#                     if toadd > 0:
+#                         self._sixtop_cell_reservation_request(dest, toadd)
+                                      
                     q_sum = q_ij
 
                     counted_links = set()
