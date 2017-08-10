@@ -137,9 +137,9 @@ def plot_statsVsCycle(statsName):
                     if line.startswith('#') or not line.strip():
                         continue
                     m = re.search('\s+'.join(['([\.0-9]+)']*numcols),line.strip())
-                    stat                = int(m.group(colnumstatsName+1))
-                    cycle               = int(m.group(colnumcycle+1))
-                    runNum              = int(m.group(colnumrunNum+1))
+                    stat                = float(m.group(colnumstatsName+1))
+                    cycle               = float(m.group(colnumcycle+1))
+                    runNum              = float(m.group(colnumrunNum+1))
                     
                     if cycle not in statsPerFile:
                          statsPerFile[cycle] = []
@@ -178,7 +178,7 @@ def plot_statsVsCycle(statsName):
         outfilename    = outfilename,
         xlabel         = 'slotframe cycles',
         ylabel         = ylabel,
-        ymax           = 20,
+#         ymax           = 20,
         ymin           = -0.000001
     )
 
@@ -356,7 +356,7 @@ def plot_topHousekeepingSignalingVsCycle():
         outfilename    = outfilename,
         xlabel         = xlabel,
         ylabel         = ylabel,
-        ymax           = 20,
+#         ymax           = 20,
         ymin           = -0.000001
     )
 
@@ -401,7 +401,11 @@ def genStatsVsCyclePlots(vals, dirs, outfilename, xlabel, ylabel, xmin=False, xm
             index = 3
         elif dataDir == 'no interference':
             index = 4
-        
+        elif 'algorithm_otf_' in dataDir :
+            index = 0
+        elif 'algorithm_local_voting' in dataDir :
+            index = 1
+
         matplotlib.pyplot.errorbar(
             x        = x,
             y        = y,
