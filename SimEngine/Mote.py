@@ -453,55 +453,52 @@ class Mote(object):
             # outgoing_links = self.parentSet
             outgoing_links = set([self.preferredParent] if self.preferredParent else [])
 
-            for dest in outgoing_links:
-
-                q_ij = len(self.txQueue) # all packets go to the same uplink
+            for dest in neighbors:
+                q_ij = len(self.txQueue) if dest == self.preferredParent else 0 # all packets go to the same uplink
                 p_ij = sum(v['dir'] == 'TX' and v['neighbor'] == dest for v in self.schedule.values())
 
+#                if dest not in outgoing_links and p_ij > 0:
+#                     print "Removing {0} cells from link {1} --> {2}, preferredPrrent is: {3}".format(p_ij, self.id, dest.id, self.preferredParent.id)
+#                    self._stats_incrementMoteStats('otfRemove')
+#                    self._sixtop_removeCells(dest, p_ij)
+                    
+                 
                 u_ij = None # So the variable exists
 #               print "time: %s src: %s dst: %s queue: %s schedule: %s (%s)" % (self.engine.asn, self.id, dest.id, q_ij, p_ij, u_ij)
-                if q_ij > 0:
-                    availableTimeslots = set(range(self.settings.slotframeLength))-set(dest.schedule.keys())-set(self.schedule.keys())
-#                    print "Available timeslots1: {0}".format(availableTimeslots)
-                    availableTimeslots -= set(sum([n.schedule.keys() for n in dest._myNeigbors()],[]))
-#                    print "Available timeslotsi2: {0}".format(availableTimeslots)
-                    available_slot_count = len(availableTimeslots)
-
-                    toadd = min(available_slot_count, q_ij) - p_ij
-#                     if toadd > 0:
-#                         self._sixtop_cell_reservation_request(dest, toadd)
                                       
-                    q_sum = q_ij
+                q_sum = q_ij
 
-                    counted_links = set()
-                    # Traffic send by dest's neighbors should be counted
-                    for n in dest._myNeigbors():
-                        if n != self:
-                            q_sum += len(n.txQueue)
-                            counted_links.add((n, n.preferredParent))
+                counted_links = set()
+                # Traffic send by dest's neighbors should be counted
+                for n in dest._myNeigbors():
+                    if n != self:
+                        q_sum += len(n.txQueue)
+                        counted_links.add((n, n.preferredParent))
 
-                    # Traffic received by our neighbors should counted, but only
-                    # if not counted previously
-                    for n in self._myNeigbors():
-                        src = next((x for x in n._myNeigbors() if x.preferredParent == n), None)
-                        if src and src != self and (src,n) not in counted_links:
-                           q_sum += len(src.txQueue)
+                # Traffic received by our neighbors should by counted, but only
+                # if not counted previously
+                for n in self._myNeigbors():
+                    src = next((x for x in n._myNeigbors() if x.preferredParent == n), None)
+                    if src and src != self and (src,n) not in counted_links:
+                        q_sum += len(src.txQueue)
+                if q_sum > 0:
 
                     u_ij = int(round(q_ij * p_sum / (1.0 * q_sum))) - p_ij
 
                     if u_ij > 0:
 #        print "Trying to add u= ", u_ij, " cells for [",self.id,",",dest.id,"]"
+                        self._stats_incrementMoteStats('otfAdd')
                         self._sixtop_cell_reservation_request(dest, u_ij)
                     elif u_ij < 0:
 #                       print "Trying to remove u= ", -u_ij, " cells from [",self.id,",",dest.id,"]"
+                        self._stats_incrementMoteStats('otfRemove')
                         self._sixtop_removeCells(dest, -u_ij)
-                elif p_ij > 0:
-#                   print "Trying to remove p= ", p_ij, " cells from [",self.id,",",dest.id,"]"
-
-                    self._sixtop_removeCells(dest, p_ij)
-                    
-                # list(map(lambda n: n.id,self._myNeigbors())),
 #                print "time: %s src: %s dst: %s queue: %s schedule: %s (%s)" % (self.engine.asn, self.id, dest.id, q_ij, p_ij, u_ij)
+                elif q_ij == 0 and p_ij > 0:
+                    self._stats_incrementMoteStats('otfRemove')
+                    self._sixtop_removeCells(dest, p_ij)
+
+               
 
             # schedule next housekeeping
             self._otf_schedule_housekeeping()
