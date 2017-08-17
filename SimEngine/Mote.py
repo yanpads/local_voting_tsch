@@ -57,7 +57,7 @@ class Mote(object):
     RPL_MAX_ETX                        = 4
     RPL_MAX_RANK_INCREASE              = RPL_MAX_ETX*RPL_MIN_HOP_RANK_INCREASE*2 # 4 transmissions allowed for rank increase for parents
     RPL_MAX_TOTAL_RANK                 = 256*RPL_MIN_HOP_RANK_INCREASE*2 # 256 transmissions allowed for total path cost for parents
-    RPL_PARENT_SET_SIZE                = 1 # 3
+    RPL_PARENT_SET_SIZE                = 3
     DEFAULT_DIO_INTERVAL_MIN           = 3 # log2(DIO_INTERVAL_MIN), with DIO_INTERVAL_MIN expressed in ms
     DEFAULT_DIO_INTERVAL_DOUBLINGS     = 20 # maximum number of doublings of DIO_INTERVAL_MIN (DIO_INTERVAL_MAX = 2^(DEFAULT_DIO_INTERVAL_MIN+DEFAULT_DIO_INTERVAL_DOUBLINGS) ms)
     DEFAULT_DIO_REDUNDANCY_CONSTANT    = 10 # number of hearings to suppress next transmission in the current interval
@@ -437,39 +437,55 @@ class Mote(object):
 
         with self.dataLock:
 
-            neighbors = self._myNeigbors()
-            alpha = 1 # This should be changed later
-
             p_sum = self.settings.slotframeLength
 
-            transmittd=set()
+            for dest, portion in self.trafficPortionPerParent.items():
+                q_ij = portion * len(self.txQueue) # if dest == self.preferredParent else 0 # all packets go to the same uplink
 
-            outgoing_links = set([self.preferredParent] if self.preferredParent else [])
 
-            for dest in neighbors:
-                q_ij = len(self.txQueue) if dest == self.preferredParent else 0 # all packets go to the same uplink
                 p_ij = sum(v['dir'] == 'TX' and v['neighbor'] == dest for v in self.schedule.values())
 
                 u_ij = None # So the variable exists
 #               print "time: %s src: %s dst: %s queue: %s schedule: %s (%s)" % (self.engine.asn, self.id, dest.id, q_ij, p_ij, u_ij)
                                       
-                q_sum = q_ij
+                # Traffic sent by us is counted
+                q_sum = len(self.txQueue)
+                counted_links = set([(self, parent) for parent in self.parentSet ])
 
-                counted_links = set()
+                # Traffic received by us is counted
+                for n in self._myNeigbors():
+                    if (n,self) not in counted_links and self in n.parentSet:
+                        q_sum += n.trafficPortionPerParent[self]*len(n.txQueue)
+                        counted_links.add((n,self))
+
+                # Traffic sent by dest is counted
+                for n in dest.parentSet:
+                    if (dest, n) not in counted_links:
+                        q_sum += dest.trafficPortionPerParent[n] * len(dest.txQueue)
+                        counted_links.add((dest,n))
+
+                # Traffic received by dest is counted
+                for n in dest._myNeigbors():
+                    if (n,dest) not in counted_links and dest in n.parentSet:
+                        q_sum += n.trafficPortionPerParent[dest]*len(n.txQueue)
+                        counted_links.add((n,dest))
+
                 # Traffic send by dest's neighbors should be counted
                 for n in dest._myNeigbors():
                     if n != self:
-                        q_sum += (len(n.txQueue) if n.preferredParent == dest else ((1.0 * len(n.txQueue)) / self.settings.numChans))
-                        # q_sum += (len(n.txQueue) if n.preferredParent == dest else ((1.0 * len(n.txQueue))))
-                        counted_links.add((n, n.preferredParent))
+                        for n_parent, n_portion in n.trafficPortionPerParent.items():
+                            if (n,n_parent) not in counted_links:
+                                q_sum += (n_portion * len(n.txQueue) / self.settings.numChans)
+                                counted_links.add((n, n_parent))
 
                 # Traffic received by our neighbors should by counted, but only
                 # if not counted previously
                 for n in self._myNeigbors():
-                    src = next((x for x in n._myNeigbors() if x.preferredParent == n), None)
-                    if src and src != self and (src,n) not in counted_links:
-                        q_sum += ((1.0 * len(src.txQueue)) / self.settings.numChans)
-                        # q_sum += ((1.0 * len(src.txQueue)) )
+                    for src in n._myNeigbors():
+                        if src != self and n in src.parentSet and (src, n) not in counted_links:
+                            q_sum += (src.trafficPortionPerParent[n] * len(src.txQueue) / self.settings.numChans)
+                            counted_links.add((src, n))
+                    
                 if q_sum > 0:
 
                     u_ij = int(round(q_ij * p_sum / (1.0 * q_sum))) - p_ij
