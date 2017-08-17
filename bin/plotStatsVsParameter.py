@@ -641,6 +641,10 @@ def genStatsVsParameterPlots(vals, dirs, outfilename, xlabel, ylabel, xmin=False
             index = 3
         elif dataSetDir == 'no interference':
             index = 4
+        elif 'algorithm_otf_' in dataSetDir :
+            index = 0
+        elif 'algorithm_local_voting' in dataSetDir :
+            index = 1
 
         matplotlib.pyplot.errorbar(
             x        = x,
@@ -658,7 +662,7 @@ def genStatsVsParameterPlots(vals, dirs, outfilename, xlabel, ylabel, xmin=False
         print >> datafile,ylabel,y
         #print >> datafile,'conf. inverval',yerr
     
-    matplotlib.pyplot.legend(prop={'size':12},loc=0)
+# matplotlib.pyplot.legend(prop={'size':12},loc=0)
     if xmin:
         matplotlib.pyplot.xlim(xmin=xmin)
     if xmax:

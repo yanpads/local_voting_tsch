@@ -437,32 +437,19 @@ class Mote(object):
 
         with self.dataLock:
 
-            gamma = 1.0
             neighbors = self._myNeigbors()
             alpha = 1 # This should be changed later
-#             print "We are at node ", self.id
-#            print "Total slots are", self.settings.slotframeLength
 
             p_sum = self.settings.slotframeLength
 
             transmittd=set()
 
-#            print "The queue is: ", self.txQueue
-#             print "Outgoing links are", self.parentSet
-#           print "But all outgoing packets got to", self.preferredParent
-            # outgoing_links = self.parentSet
             outgoing_links = set([self.preferredParent] if self.preferredParent else [])
 
             for dest in neighbors:
                 q_ij = len(self.txQueue) if dest == self.preferredParent else 0 # all packets go to the same uplink
                 p_ij = sum(v['dir'] == 'TX' and v['neighbor'] == dest for v in self.schedule.values())
 
-#                if dest not in outgoing_links and p_ij > 0:
-#                     print "Removing {0} cells from link {1} --> {2}, preferredPrrent is: {3}".format(p_ij, self.id, dest.id, self.preferredParent.id)
-#                    self._stats_incrementMoteStats('otfRemove')
-#                    self._sixtop_removeCells(dest, p_ij)
-                    
-                 
                 u_ij = None # So the variable exists
 #               print "time: %s src: %s dst: %s queue: %s schedule: %s (%s)" % (self.engine.asn, self.id, dest.id, q_ij, p_ij, u_ij)
                                       
@@ -472,7 +459,8 @@ class Mote(object):
                 # Traffic send by dest's neighbors should be counted
                 for n in dest._myNeigbors():
                     if n != self:
-                        q_sum += len(n.txQueue)
+                        q_sum += (len(n.txQueue) if n.preferredParent == dest else ((1.0 * len(n.txQueue)) / self.settings.numChans))
+                        # q_sum += (len(n.txQueue) if n.preferredParent == dest else ((1.0 * len(n.txQueue))))
                         counted_links.add((n, n.preferredParent))
 
                 # Traffic received by our neighbors should by counted, but only
@@ -480,7 +468,8 @@ class Mote(object):
                 for n in self._myNeigbors():
                     src = next((x for x in n._myNeigbors() if x.preferredParent == n), None)
                     if src and src != self and (src,n) not in counted_links:
-                        q_sum += len(src.txQueue)
+                        q_sum += ((1.0 * len(src.txQueue)) / self.settings.numChans)
+                        # q_sum += ((1.0 * len(src.txQueue)) )
                 if q_sum > 0:
 
                     u_ij = int(round(q_ij * p_sum / (1.0 * q_sum))) - p_ij

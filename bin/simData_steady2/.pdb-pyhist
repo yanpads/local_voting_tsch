@@ -1,0 +1,8 @@
+b ../plotStatsVsPrameter.py
+b ../plotStatsVsPrameter.py:665
+b ../plotStatsVsParameter.py:665
+b plotStatsVsParameter.py:665
+r
+matplotlib.pyplot.legend
+matplotlib.pyplot.legend()
+exit

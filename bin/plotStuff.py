@@ -21,7 +21,7 @@ import matplotlib.pyplot
 
 #============================ defines =========================================
 
-DATADIR       = 'simData'
+DATADIR       = '.'
 CONFINT       = 0.95
 
 COLORS_TH     = {

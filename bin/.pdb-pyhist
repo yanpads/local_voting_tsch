@@ -1,0 +1,47 @@
+b ../SimEngine/Mote.py:473
+exit
+b ../SimEngine/Mote.py:473
+r
+l
+u_ij
+p u_ij
+s
+p u_ij
+self.settings.numChans
+self.settings.slotframeLength
+p neighbors
+p lamda(neighbors, id)
+map(lambda x: x.id, neighbors)
+map(lambda x: len(x.txQueue), neighbors)
+q_ij
+q_sum
+p_ij
+p_sum
+p_sum/q_sum
+map(id, neighbors)
+p self.schedule()
+s
+c
+p self.schedule()
+p self.schedule().entries()
+p self.schedule().values()
+self.schedule().values()
+seld.id
+self.id
+self.schedule()
+self.schedule().keys()
+c
+self.id
+s
+c
+self.schedule
+u_ij
+s
+u_ij
+c
+s
+u_ij
+b
+clear 1
+b
+exit
