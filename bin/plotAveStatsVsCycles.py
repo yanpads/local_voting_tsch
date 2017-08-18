@@ -390,7 +390,7 @@ def genStatsVsCyclePlots(vals, dirs, outfilename, xlabel, ylabel, xmin=False, xm
         x         = sorted(meanPerParameter.keys())
         y         = [meanPerParameter[k] for k in x]
         yerr      = [confintPerParameter[k] for k in x]
-        
+
         if dataDir == 'tx-housekeeping':
             index = 0
         elif dataDir == 'rx-housekeeping':
@@ -403,8 +403,10 @@ def genStatsVsCyclePlots(vals, dirs, outfilename, xlabel, ylabel, xmin=False, xm
             index = 4
         elif 'algorithm_otf_' in dataDir :
             index = 0
+            label = "otf, thr={}".format(re.search(r'_(\d+)$', dataDir).group())
         elif 'algorithm_local_voting' in dataDir :
             index = 1
+            label = 'local voting'
 
         matplotlib.pyplot.errorbar(
             x        = x,
@@ -413,7 +415,7 @@ def genStatsVsCyclePlots(vals, dirs, outfilename, xlabel, ylabel, xmin=False, xm
             color    = COLORS[index],
             ls       = LINESTYLE[index],
             ecolor   = ECOLORS[index],
-            label    = dataDir
+            label    = label
         )
         
         datafile=open(outfilename+'.dat', "a")

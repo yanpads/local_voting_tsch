@@ -26,8 +26,8 @@ CONFINT       = 0.95
 
 COLORS_TH     = {
     0:        'red',
-    1:        'green',
-    4:        'blue',
+    1:        'blue',
+    4:        'green',
     8:        'magenta',
     10:       'black',
 }
@@ -42,16 +42,16 @@ LINESTYLE_TH       = {
 
 ECOLORS_TH         = {
     0:        'red',
-    1:        'green',
-    4:        'blue',
+    1:        'blue',
+    4:        'green',
     8:        'magenta',
     10:       'black',
 }
 
 COLORS_PERIOD      = {
     'NA':     'red',
-    1:        'green',
-    10:       'blue',
+    1:        'blue',
+    10:       'green',
     60:       'black',
 }
 
@@ -64,8 +64,8 @@ LINESTYLE_PERIOD   = {
 
 ECOLORS_PERIOD     = {
     'NA':     'red',
-    1:        'green',
-    10:       'blue',
+    1:        'blue',
+    10:       'green',
     60:       'magenta',
 }
 
