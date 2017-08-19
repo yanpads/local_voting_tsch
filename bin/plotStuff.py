@@ -33,7 +33,7 @@ COLORS_TH     = {
 }
 
 LINESTYLE_TH       = {
-    0:        '--',
+    0:        '-',
     1:        '--',
     4:        '-.',
     8:        '-.',
@@ -97,7 +97,7 @@ def binDataFiles():
                 # otfThreshold
                 m = re.search('otfThreshold\s+=\s+([\.0-9]+)',line)
                 if m:
-                    otfThreshold = float(m.group(1))
+                    otfThreshold = int(m.group(1))
                 # pkPeriod
                 m = re.search('pkPeriod\s+=\s+([\.0-9]+)',line)
                 if m:
@@ -348,21 +348,24 @@ def plot_vs_time(plotData,ymin=None,ymax=None,ylabel=None,filename=None,doPlot=T
         ax.set_xlim(xmin=0,xmax=100)
         ax.set_ylim(ymin=ymin,ymax=ymax)
         plots = []
-        for th in algorithms:
-            for ((otfThreshold,pkPeriod,algorithm),data) in plotData.items():
-                if algorithm==th:
-                    plots += [
-                        ax.errorbar(
-                            x        = data['x'],
-                            y        = data['y'],
-                            yerr     = data['yerr'],
-                            color    = COLORS_TH[th=='otf'],
-                            ls       = LINESTYLE_TH[th=='otf'],
-                            ecolor   = ECOLORS_TH[th=='otf'],
-                        )
-                    ]
-        legendPlots = tuple(plots)
-        allaxes += [ax]
+        legends = []
+        for alg in algorithms:
+            for th in otfThresholds:
+                for ((otfThreshold,pkPeriod,algorithm),data) in plotData.items():
+                    if algorithm==alg and otfThreshold == th:
+                        plots += [
+                            ax.errorbar(
+                                x        = data['x'],
+                                y        = data['y'],
+                                yerr     = data['yerr'],
+                                color    = COLORS_TH[th],
+                                ls       = LINESTYLE_TH[alg=='otf'],
+                                ecolor   = ECOLORS_TH[th],
+                            )
+                        ]
+                        legends += ['{0}_{1}'.format(alg,th)]
+            legendPlots = tuple(plots)
+            allaxes += [ax]
     
     # add x label
     for ax in allaxes[1:]:
@@ -373,7 +376,7 @@ def plot_vs_time(plotData,ymin=None,ymax=None,ylabel=None,filename=None,doPlot=T
     allaxes[int(len(allaxes)/2)].set_ylabel(ylabel)
     
     # add legend
-    legendText = tuple(['{0}'.format(t) for t in algorithms])
+    legendText = tuple(legends)
 
     fig.legend(
         legendPlots,

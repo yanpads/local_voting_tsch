@@ -41,18 +41,22 @@ import argparse
 CONFINT = 0.95
 
 COLORS = [
-   '#0000ff', #'b'
-   '#ff0000', #'r'
-   '#008000', #'g'
-   '#bf00bf', #'m'
-   '#000000', #'k'
-   '#ff0000', #'r'
+    'red',
+    'blue',
+    'green',
+    'magenta',
+    'black',
+#   '#ff0000', #'r'
+#   '#008000', #'g'
+#   '#bf00bf', #'m'
+#   '#000000', #'k'
+#   '#ff0000', #'r'
 
 ]
 
 LINESTYLE = [
     '--',
-    '-.',
+    '-',
     ':',
     '-',
     '-',
@@ -60,12 +64,17 @@ LINESTYLE = [
 ]
 
 ECOLORS= [
-   '#0000ff', #'b'
-   '#ff0000', #'r'
-   '#008000', #'g'
-   '#bf00bf', #'m'
-   '#000000', #'k'
-   '#ff0000', #'r'
+    'red',
+    'blue',
+    'green',
+    'magenta',
+    'black',
+#  '#0000ff', #'b'
+#   '#ff0000', #'r'
+#   '#008000', #'g'
+#   '#bf00bf', #'m'
+#   '#000000', #'k'
+#   '#ff0000', #'r'
 ]
 
 #============================ body ============================================
@@ -370,10 +379,20 @@ def genStatsVsCyclePlots(vals, dirs, outfilename, xlabel, ylabel, xmin=False, xm
     matplotlib.pyplot.figure()
     matplotlib.pyplot.xlabel(xlabel, fontsize='large')
     matplotlib.pyplot.ylabel(ylabel, fontsize='large')
+
+    def sortDirs(item):
+       arr = str(item).split("_") 
+       th = -int(arr[-1])
+       alg = arr[1]
+       rank = th + (-1000 if alg == 'otf' else 0)
+       # print "Debug: {0} {1} {2} {3}".format(item,th,alg,rank)
+       return rank
+
     if log:
         matplotlib.pyplot.yscale('log')
-
-    for dataDir in dirs:
+    
+        print 
+    for dataDir in sorted(dirs, key=sortDirs):
         # calculate mean and confidence interval
         meanPerParameter    = {}
         confintPerParameter = {}
@@ -390,6 +409,8 @@ def genStatsVsCyclePlots(vals, dirs, outfilename, xlabel, ylabel, xmin=False, xm
         x         = sorted(meanPerParameter.keys())
         y         = [meanPerParameter[k] for k in x]
         yerr      = [confintPerParameter[k] for k in x]
+        color     = None
+        linestyle = None
 
         if dataDir == 'tx-housekeeping':
             index = 0
@@ -401,20 +422,24 @@ def genStatsVsCyclePlots(vals, dirs, outfilename, xlabel, ylabel, xmin=False, xm
             index = 3
         elif dataDir == 'no interference':
             index = 4
-        elif 'algorithm_otf_' in dataDir :
-            index = 0
-            label = "otf, thr={}".format(re.search(r'_(\d+)$', dataDir).group())
-        elif 'algorithm_local_voting' in dataDir :
-            index = 1
-            label = 'local voting'
+        elif '_otfThreshold_' in dataDir:
+            th = int(re.search(r'_otfThreshold_(\d+)$', dataDir).group(1))
+            color = [0,1,4,8,10].index(th)
+            
+            if 'algorithm_otf_' in dataDir:
+                label = "otf_{}".format(th)
+                linestyle = 0
+            elif 'algorithm_local_voting' in dataDir :
+                label = "local_voting_{}".format(th)
+                linestyle = 1
 
         matplotlib.pyplot.errorbar(
             x        = x,
             y        = y,
             #yerr     = yerr,
-            color    = COLORS[index],
-            ls       = LINESTYLE[index],
-            ecolor   = ECOLORS[index],
+            color    = COLORS[color],
+            ls       = LINESTYLE[linestyle],
+            ecolor   = ECOLORS[color],
             label    = label
         )
         
@@ -424,7 +449,7 @@ def genStatsVsCyclePlots(vals, dirs, outfilename, xlabel, ylabel, xmin=False, xm
         print >> datafile,ylabel,y
         #print >> datafile,'conf. inverval',yerr
     
-    matplotlib.pyplot.legend(prop={'size':12},loc=0)
+    matplotlib.pyplot.legend(prop={'size':8},loc='upper right')
     if xmin:
         matplotlib.pyplot.xlim(xmin=xmin)
     if xmax:
