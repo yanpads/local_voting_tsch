@@ -412,7 +412,7 @@ def plot_vs_threshold(plotData,ymin,ymax,ylabel,filename):
         temp = []
         for (k,v) in perCycleData.items():
             temp += v
-        plotData[(otfThreshold,pkPeriod)] = temp
+        plotData[(otfThreshold,pkPeriod,algorithm)] = temp
     
     # plotData = {
     #     (otfThreshold,pkPeriod) = [
@@ -449,37 +449,41 @@ def plot_vs_threshold(plotData,ymin,ymax,ylabel,filename):
     
     pkPeriods           = []
     otfThresholds       = []
-    for (otfThreshold,pkPeriod) in plotData.keys():
+    algorithms          = []
+    for (otfThreshold,pkPeriod,algorithm) in plotData.keys():
         pkPeriods      += [pkPeriod]
         otfThresholds  += [otfThreshold]
+        algorithms     += [algorithm]
     pkPeriods           = sorted(list(set(pkPeriods)))
     otfThresholds       = sorted(list(set(otfThresholds)), reverse=True)
+    algorithms          = sorted(list(set(algorithms)), reverse=True)
     
     #===== plot
     
     fig = matplotlib.pyplot.figure()
-    matplotlib.pyplot.ylim(ymin=ymin,ymax=ymax)
+    if ymax != None:
+        matplotlib.pyplot.ylim(ymin=ymin,ymax=ymax)
     matplotlib.pyplot.xlabel('OTF threshold (cells)')
     matplotlib.pyplot.ylabel(ylabel)
-    for period in pkPeriods:
+    d = dict()
+    for ((otfThreshold,pkPeriod,algorithm),data) in plotData.items():
+         if algorithm == 'otf' or otfThreshold == 0:
+             d[(algorithm,otfThreshold)] = data
+
+    x     = sorted(d.keys())
+    y     = [d[k]['mean'] for k in x]
+    yerr  = [d[k]['confint'] for k in x]
         
-        d = {}
-        for ((otfThreshold,pkPeriod),data) in plotData.items():
-            if pkPeriod==period:
-                d[otfThreshold] = data
-        x     = sorted(d.keys())
-        y     = [d[k]['mean'] for k in x]
-        yerr  = [d[k]['confint'] for k in x]
-        
-        matplotlib.pyplot.errorbar(
-            x        = x,
-            y        = y,
-            yerr     = yerr,
-            color    = COLORS_PERIOD[period],
-            ls       = LINESTYLE_PERIOD[period],
-            ecolor   = ECOLORS_PERIOD[period],
-            label    = 'packet period {0}s'.format(period)
-        )
+    matplotlib.pyplot.xticks(range(len(x)), x)
+    matplotlib.pyplot.errorbar(
+        x        = range(len(x)),
+        y        = y,
+        yerr     = yerr,
+        color    = COLORS_TH[otfThreshold],
+        ls       = LINESTYLE_TH[algorithm == 'otf'],
+        ecolor   = ECOLORS_TH[otfThreshold],
+        label    = '{0}_{0}'.format(algorithm,otfThreshold)
+    )
     matplotlib.pyplot.legend(prop={'size':10})
     matplotlib.pyplot.savefig(os.path.join(DATADIR,'{0}.png'.format(filename)))
     matplotlib.pyplot.savefig(os.path.join(DATADIR,'{0}.eps'.format(filename)))
@@ -569,7 +573,7 @@ def plot_latency_vs_threshold(dataBins):
     plot_vs_threshold(
         plotData   = plotData,
         ymin       = 0,
-        ymax       = 3,
+        ymax       = None,
         ylabel     = 'end-to-end latency (s)',
         filename   = 'latency_vs_threshold',
     )
@@ -1242,7 +1246,7 @@ def main():
     
     # latency
     plot_latency_vs_time(dataBins)
-#    plot_latency_vs_threshold(dataBins)
+    plot_latency_vs_threshold(dataBins)
     
     # numCells
 #    plot_numCells_vs_time(dataBins)
@@ -1254,7 +1258,7 @@ def main():
 #    plot_otfActivity_vs_threshold(dataBins)
     
     # reliability
-#    plot_reliability_vs_threshold(dataBins)
+# plot_reliability_vs_threshold(dataBins)
     plot_reliability_vs_time(dataBins)
 
 if __name__=="__main__":
