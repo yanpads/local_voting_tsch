@@ -25,10 +25,10 @@ DATADIR       = '.'
 CONFINT       = 0.95
 
 COLORS_TH     = {
-    0:        'red',
+    0:        'magenta',
     1:        'blue',
     4:        'green',
-    'NA':        'magenta',
+    'NA':     'red' ,
     10:       'black',
 }
 
@@ -41,10 +41,10 @@ LINESTYLE_TH       = {
 }
 
 ECOLORS_TH         = {
-    0:        'red',
+    0:        'magenta',
     1:        'blue',
     4:        'green',
-    'NA':        'magenta',
+    'NA':     'red',
     10:       'black',
 }
 
@@ -362,7 +362,7 @@ def plot_vs_time(plotData,ymin=None,ymax=None,ylabel=None,filename=None,doPlot=T
         ax.set_ylim(ymin=ymin,ymax=ymax)
         plots = []
         legends = []
-        for alg in algorithms:
+        for alg in [ 'otf', 'local_voting' ]:
             for th in otfThresholds:
                 for ((otfThreshold,pkPeriod,algorithm),data) in plotData.items():
                     if algorithm==alg and otfThreshold == th:
@@ -377,7 +377,7 @@ def plot_vs_time(plotData,ymin=None,ymax=None,ylabel=None,filename=None,doPlot=T
                                 ecolor   = ECOLORS_TH[t],
                             )
                         ]
-                        legends += ['{0}_{1}'.format(alg,th)]
+                        legends += ( ['{0}_{1}'.format(alg,th)] if alg == 'otf' else [ alg ] )
             legendPlots = tuple(plots)
             allaxes += [ax]
     
@@ -531,6 +531,64 @@ def plot_vs_threshold(plotData,ymin,ymax,ylabel,filename):
     matplotlib.pyplot.savefig(os.path.join(DATADIR,'{0}.png'.format(filename)))
     matplotlib.pyplot.savefig(os.path.join(DATADIR,'{0}.eps'.format(filename)))
     matplotlib.pyplot.close('all')
+
+#----- txQueueFill
+
+def gather_per_cycle_data(dataBins, parameter):
+    
+    prettyp   = False
+    
+    # gather raw data
+    plotData  = {}
+    for ((otfThreshold,pkPeriod,algorithm,parents,buffer_size),filepaths) in dataBins.items():
+        plotData[(otfThreshold,pkPeriod,algorithm,parents,buffer_size)] = gatherPerCycleData(filepaths,parameter)
+    
+    # plotData = {
+    #     (otfThreshold,pkPeriod) = {
+    #         cycle0: [run0,run1, ...],
+    #         cycle1: [run0,run1, ...],
+    #     }
+    # }
+    
+    if prettyp:
+        with open('templog.txt','w') as f:
+            f.write('\n============ {0}\n'.format('gather raw data'))
+            f.write(pp.pformat(plotData))
+    
+    # Get average value
+    # for ((otfThreshold,pkPeriod,algorithm,parent,buffer_size),perCycleData) in plotData.items():
+    #     for cycle in perCycleData.keys():
+    #         perCycleData[cycle] = sum(perCycleData[cycle]) / float(len(perCycleData[cycle]))
+    
+    # plotData = {
+    #     (otfThreshold,pkPeriod) = {
+    #         cycle0: avg0,
+    #         cycle1: avg1,
+    #     }
+    # }
+    
+    if prettyp:
+        with open('templog.txt','a') as f:
+            f.write('\n============ {0}\n'.format('convert slots to seconds'))
+            f.write(pp.pformat(plotData))
+        
+    return plotData
+
+
+def plot_txQueueFill_vs_time(dataBins):
+    
+    plotData  = gather_per_cycle_data(dataBins, 'txQueueFill')
+    
+    for b in [10, 100]:
+        for p in [1,3]:
+            plot_vs_time(
+                plotData = dict(((th,per,alg),data) for (th,per,alg,par,buf),data in plotData.items() if buf == b and par == p ),
+                ymin     = 0,
+                ymax     = 50,
+                ylabel   = 'txQueueFill',
+                filename = 'txQueueFilllatency_vs_time_buf_{}_par_{}'.format(b,p),
+                withError = False,
+            )
 
 #===== latency
 
@@ -1448,15 +1506,17 @@ def main():
     dataBins = binDataFiles()
     
     # latency
-    plot_latency_vs_time(dataBins)
-    plot_latency_vs_threshold(dataBins)
-    plot_max_latency_vs_threshold(dataBins)
-    plot_time_all_reached_vs_threshold(dataBins)
+#    plot_latency_vs_time(dataBins)
+#    plot_latency_vs_threshold(dataBins)
+#    plot_max_latency_vs_threshold(dataBins)
+#    plot_time_all_reached_vs_threshold(dataBins)
     
     # Queue Delay
-    plot_max_queue_delay_vs_threshold(dataBins)
-    plot_ave_q_delay_vs_threshold(dataBins)
+#    plot_max_queue_delay_vs_threshold(dataBins)
+#    plot_ave_q_delay_vs_threshold(dataBins)
 
+    # txQueueFill
+    plot_txQueueFill_vs_time(dataBins)
 
 
     # numCells
@@ -1469,7 +1529,7 @@ def main():
 #    plot_otfActivity_vs_threshold(dataBins)
     
     # reliability
-    plot_reliability_vs_threshold(dataBins)
+#    plot_reliability_vs_threshold(dataBins)
 #    plot_reliability_vs_time(dataBins)
 
 if __name__=="__main__":
