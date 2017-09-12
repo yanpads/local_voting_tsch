@@ -510,7 +510,7 @@ def plot_vs_threshold(plotData,ymin,ymax,ylabel,filename):
             t     = threshold if algorithm == 'otf' else 'NA'
 
             bars += [ax.bar(tics, y, 0.1, color= COLORS_TH[t], edgecolor='black', ecolor=ECOLORS_TH[t], yerr=yerr)]
-            legends += [ '{}, thr={}'.format(algorithm,threshold) ]
+            legends += [ '{}, thr={}'.format(algorithm,threshold) ] if algorithm == 'otf' else [ algorithm ]
             offset += 0.15
 
     ax.set_xticks( [i+.25+offset/2 for i in range(len(x))])
@@ -589,6 +589,54 @@ def plot_txQueueFill_vs_time(dataBins):
                 filename = 'txQueueFilllatency_vs_time_buf_{}_par_{}'.format(b,p),
                 withError = False,
             )
+
+def plot_appReachesDagroot_vs_time(dataBins):
+    
+    plotData  = gather_per_cycle_data(dataBins, 'appReachesDagroot')
+    
+    for b in [10, 100]:
+        for p in [1,3]:
+            plot_vs_time(
+                plotData = dict(((th,per,alg),data) for (th,per,alg,par,buf),data in plotData.items() if buf == b and par == p ),
+                ymin     = 0,
+                ymax     = 50,
+                ylabel   = 'appReachesDagroot',
+                filename = 'appReachesDagroot_vs_time_buf_{}_par_{}'.format(b,p),
+                withError = False,
+            )
+
+
+def plot_numRxCells_vs_time(dataBins):
+    
+    plotData  = gather_per_cycle_data(dataBins, 'numRxCells')
+    
+    for b in [10, 100]:
+        for p in [1,3]:
+            plot_vs_time(
+                plotData = dict(((th,per,alg),data) for (th,per,alg,par,buf),data in plotData.items() if buf == b and par == p ),
+                ymin     = 0,
+                ymax     = 1000,
+                ylabel   = 'numRxCells',
+                filename = 'numRxCells_vs_time_buf_{}_par_{}'.format(b,p),
+                withError = False,
+            )
+
+def plot_chargeConsumed_vs_time(dataBins):
+    
+    plotData  = gather_per_cycle_data(dataBins, 'chargeConsumed')
+    
+    for b in [10, 100]:
+        for p in [1,3]:
+            plot_vs_time(
+                plotData = dict(((th,per,alg),data) for (th,per,alg,par,buf),data in plotData.items() if buf == b and par == p ),
+                ymin     = 0,
+                ymax     = 700000,
+                ylabel   = 'chargeConsumed',
+                filename = 'chargeConsumed_vs_time_buf_{}_par_{}'.format(b,p),
+                withError = False,
+            )
+
+
 
 #===== latency
 
@@ -770,12 +818,12 @@ def gather_time_all_reached(dataBins):
         perCycle = gatherPerCycleData(filepaths,'appReachesDagroot')
    
         lastnonzero = [ 1000 for i in perCycle[0]]
-        print "file: {}, percyle: {}, {}".format(filepaths,perCycle,(otfThreshold,pkPeriod,algorithm,parent_size,buffer_size))
+        # print "file: {}, percyle: {}, {}".format(filepaths,perCycle,(otfThreshold,pkPeriod,algorithm,parent_size,buffer_size))
         for k,v in perCycle.items():
             for run,value in enumerate(v):
                 if value != 0:
                     lastnonzero[run] = k
-            print k,len(v)
+            # print k,len(v)
         print "lastnonzero: {}".format(lastnonzero)
 
         plotData[(otfThreshold,pkPeriod,algorithm,parent_size,buffer_size)] = {0: lastnonzero}
@@ -1256,8 +1304,8 @@ def plot_reliability_vs_time(dataBins):
 
         # gather raw add/remove data
         plotdata    = {}
-        for ((otfThreshold,pkPeriod,algorithm),filepaths) in dataBins.items():
-            plotdata[(otfThreshold,pkPeriod,algorithm)] = {
+        for ((otfThreshold,pkPeriod,algorithm,parent_size,buffer_size),filepaths) in dataBins.items():
+            plotdata[(otfThreshold,pkPeriod,algorithm,parent_size,buffer_size)] = {
                 i: list(k) for i,k in enumerate(
                     zip(*gatherPerRunData(filepaths, val_str).values())
                 )
@@ -1504,6 +1552,15 @@ def plot_reliability_vs_threshold(dataBins):
 def main():
     
     dataBins = binDataFiles()
+
+    plot_txQueueFill_vs_time(dataBins)
+    plot_appReachesDagroot_vs_time(dataBins)
+    plot_time_all_reached_vs_threshold(dataBins)
+    plot_max_latency_vs_threshold(dataBins)
+    plot_numRxCells_vs_time(dataBins)
+    plot_chargeConsumed_vs_time(dataBins)
+
+#  OLD PLOTS
     
     # latency
 #    plot_latency_vs_time(dataBins)
@@ -1514,9 +1571,6 @@ def main():
     # Queue Delay
 #    plot_max_queue_delay_vs_threshold(dataBins)
 #    plot_ave_q_delay_vs_threshold(dataBins)
-
-    # txQueueFill
-    plot_txQueueFill_vs_time(dataBins)
 
 
     # numCells
@@ -1530,7 +1584,7 @@ def main():
     
     # reliability
 #    plot_reliability_vs_threshold(dataBins)
-#    plot_reliability_vs_time(dataBins)
+#     plot_reliability_vs_time(dataBins)
 
 if __name__=="__main__":
     main()
