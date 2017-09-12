@@ -1044,7 +1044,7 @@ class Mote(object):
 #
 #            return False
         
-        elif len(self.txQueue)==self.TSCH_QUEUE_SIZE:
+        elif len(self.txQueue)>=self.TSCH_QUEUE_SIZE:
             # my TX queue is full
             
             # update mote stats
