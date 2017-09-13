@@ -213,6 +213,21 @@ def parseCliOptions():
         default    = ['otf', 'local_voting'],
         help       = 'Select the load balancing algorithm, "otf" or "local_voting"',
     )
+    parser.add_argument('--buffer',
+        dest       = 'buffer',
+        nargs      = '+',
+        type       = str,
+        default    = [10, 100],
+        help       = 'Select the buffer space per node in packets, 10 or 100',
+    )
+    parser.add_argument('--parents',
+        dest       = 'parents',
+        nargs      = '+',
+        type       = str,
+        default    = [1, 2, 3],
+        help       = 'Select the number of parents for the rpl protocol, 1, 2, or 3',
+    )
+
     
     options        = parser.parse_args()
     
