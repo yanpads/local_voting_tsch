@@ -534,7 +534,7 @@ def plot_vs_threshold(plotData,ymin,ymax,ylabel,filename):
 
 #----- txQueueFill
 
-def gather_per_cycle_data(dataBins, parameter):
+def gather_per_cycle_data(dataBins, parameter, factor=1.0):
     
     prettyp   = False
     
@@ -555,15 +555,15 @@ def gather_per_cycle_data(dataBins, parameter):
             f.write('\n============ {0}\n'.format('gather raw data'))
             f.write(pp.pformat(plotData))
     
-    # Get average value
-    # for ((otfThreshold,pkPeriod,algorithm,parent,buffer_size),perCycleData) in plotData.items():
-    #     for cycle in perCycleData.keys():
-    #         perCycleData[cycle] = sum(perCycleData[cycle]) / float(len(perCycleData[cycle]))
+    # Multiply by factor
+    for ((otfThreshold,pkPeriod,algorithm,parent,buffer_size),perCycleData) in plotData.items():
+        for cycle in perCycleData.keys():
+            perCycleData[cycle] = [ factor * val for val in perCycleData[cycle] ]
     
     # plotData = {
     #     (otfThreshold,pkPeriod) = {
-    #         cycle0: avg0,
-    #         cycle1: avg1,
+    #         cycle0: [run0,run1, ...],
+    #         cycle1: [run0,run1, ...],
     #     }
     # }
     
@@ -623,15 +623,15 @@ def plot_numRxCells_vs_time(dataBins):
 
 def plot_chargeConsumed_vs_time(dataBins):
     
-    plotData  = gather_per_cycle_data(dataBins, 'chargeConsumed')
+    plotData  = gather_per_cycle_data(dataBins, 'chargeConsumed', 1e-5)
     
     for b in [10, 100]:
         for p in [1,3]:
             plot_vs_time(
                 plotData = dict(((th,per,alg),data) for (th,per,alg,par,buf),data in plotData.items() if buf == b and par == p ),
                 ymin     = 0,
-                ymax     = 700000,
-                ylabel   = 'chargeConsumed',
+                ymax     = 7,
+                ylabel   = 'chargeConsumed x1e5',
                 filename = 'chargeConsumed_vs_time_buf_{}_par_{}'.format(b,p),
                 withError = False,
             )
@@ -1553,11 +1553,11 @@ def main():
     
     dataBins = binDataFiles()
 
-    plot_txQueueFill_vs_time(dataBins)
-    plot_appReachesDagroot_vs_time(dataBins)
-    plot_time_all_reached_vs_threshold(dataBins)
-    plot_max_latency_vs_threshold(dataBins)
-    plot_numRxCells_vs_time(dataBins)
+#    plot_txQueueFill_vs_time(dataBins)
+#    plot_appReachesDagroot_vs_time(dataBins)
+#    plot_time_all_reached_vs_threshold(dataBins)
+#    plot_max_latency_vs_threshold(dataBins)
+#    plot_numRxCells_vs_time(dataBins)
     plot_chargeConsumed_vs_time(dataBins)
 
 #  OLD PLOTS
