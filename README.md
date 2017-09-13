@@ -1,3 +1,20 @@
+Local Voting TSCH
+=================
+
+Implementation of the Local Voting algorithm in the 6TiSCH Simulator, and some
+simulation results. Comparison of Local Voting with OTF, thresholds 0,1,4,10,
+1,2, and 3 parents, and 10 and 100 buffer size.
+
+You can find eps and png figures of the results in folder bin/simData/
+
+
+
+The Remainder of this document is orginal README from the parent repository,
+https://bitbucket.org/6tisch/simulator/src
+
+
+
+
 The 6TiSCH Simulator
 ====================
 
