@@ -57,7 +57,7 @@ class Mote(object):
     RPL_MAX_ETX                        = 4
     RPL_MAX_RANK_INCREASE              = RPL_MAX_ETX*RPL_MIN_HOP_RANK_INCREASE*2 # 4 transmissions allowed for rank increase for parents
     RPL_MAX_TOTAL_RANK                 = 256*RPL_MIN_HOP_RANK_INCREASE*2 # 256 transmissions allowed for total path cost for parents
-    RPL_PARENT_SET_SIZE                = 3 # we tested 1 also
+    # RPL_PARENT_SET_SIZE                = 3 #   REMOVED, see self.settings.parents 
     DEFAULT_DIO_INTERVAL_MIN           = 3 # log2(DIO_INTERVAL_MIN), with DIO_INTERVAL_MIN expressed in ms
     DEFAULT_DIO_INTERVAL_DOUBLINGS     = 20 # maximum number of doublings of DIO_INTERVAL_MIN (DIO_INTERVAL_MAX = 2^(DEFAULT_DIO_INTERVAL_MIN+DEFAULT_DIO_INTERVAL_DOUBLINGS) ms)
     DEFAULT_DIO_REDUNDANCY_CONSTANT    = 10 # number of hearings to suppress next transmission in the current interval
@@ -66,7 +66,7 @@ class Mote(object):
     OTF_TRAFFIC_SMOOTHING              = 0.5
     #=== 6top
     #=== tsch
-    TSCH_QUEUE_SIZE                    = 10
+    # TSCH_QUEUE_SIZE                    = 10 #   REMOVED, see self.settings.buffer
     TSCH_MAXTXRETRIES                  = 5    
     #=== radio
     RADIO_MAXDRIFT                     = 30 # in ppm
@@ -344,7 +344,7 @@ class Mote(object):
                 
                 # compare a current preferred parent with new one
                 if self.preferredParent and newPreferredParent!=self.preferredParent:
-                    for (mote,rank) in sorted_potentialRanks[:self.RPL_PARENT_SET_SIZE]:
+                    for (mote,rank) in sorted_potentialRanks[:self.settings.parents]:
                         
                         if mote == self.preferredParent:                      
                             # switch preferred parent only when rank difference is large enough
@@ -377,7 +377,7 @@ class Mote(object):
                 self.dagRank = int(self.rank/self.RPL_MIN_HOP_RANK_INCREASE)
             
                 # pick my parent set
-                self.parentSet = [n for (n,_) in sorted_potentialRanks if self.neighborRank[n]<self.rank][:self.RPL_PARENT_SET_SIZE]
+                self.parentSet = [n for (n,_) in sorted_potentialRanks if self.neighborRank[n]<self.rank][:self.settings.parents]
                 assert self.preferredParent in self.parentSet
                 
                 if oldParentSet!=set([parent.id for parent in self.parentSet]):
@@ -1044,7 +1044,7 @@ class Mote(object):
 #
 #            return False
         
-        elif len(self.txQueue)>=self.TSCH_QUEUE_SIZE:
+        elif len(self.txQueue)>=self.settings.buffer:
             # my TX queue is full
             
             # update mote stats
@@ -1250,7 +1250,7 @@ class Mote(object):
                 # drop packet if retried too many time
                 if self.txQueue[i]['retriesLeft'] == 0:
                     
-                    if  len(self.txQueue) == self.TSCH_QUEUE_SIZE:
+                    if  len(self.txQueue) == self.settings.buffer:
                         
                         # update mote stats
                         self._stats_incrementMoteStats('droppedMacRetries')
@@ -1272,7 +1272,7 @@ class Mote(object):
                 # drop packet if retried too many time
                 if self.txQueue[i]['retriesLeft'] == 0:
                     
-                    if  len(self.txQueue) == self.TSCH_QUEUE_SIZE:
+                    if  len(self.txQueue) == self.settings.buffer:
                         
                         # update mote stats
                         self._stats_incrementMoteStats('droppedMacRetries')
