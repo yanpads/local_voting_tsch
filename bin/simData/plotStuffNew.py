@@ -118,7 +118,7 @@ def binDataFiles():
                 if m:
                     buffer_size  = int(m.group(1))
                 # parents
-                m = re.search('parents_([^_]+)',infilepath)
+                m = re.search('parents_([^_/]+)',infilepath)
                 if m:
                     parent_size      = int(m.group(1))
 
@@ -349,6 +349,8 @@ def plot_vs_time(plotData,ymin=None,ymax=None,ylabel=None,filename=None,doPlot=T
         return tuple(plots)
     
     # plot axis
+
+
     allaxes = []
     if 'NA' not in pkPeriods:
         subplotHeight = 0.85/len(pkPeriods)
@@ -366,6 +368,10 @@ def plot_vs_time(plotData,ymin=None,ymax=None,ylabel=None,filename=None,doPlot=T
             for th in otfThresholds:
                 for ((otfThreshold,pkPeriod,algorithm),data) in plotData.items():
                     if algorithm==alg and otfThreshold == th:
+
+                        if algorithm == 'local_voting' and otfThreshold != 0:
+                            continue
+
                         t = th if alg == 'otf' else 'NA'
                         plots += [
                             ax.errorbar(
@@ -378,12 +384,12 @@ def plot_vs_time(plotData,ymin=None,ymax=None,ylabel=None,filename=None,doPlot=T
                             )
                         ]
                         legends += ( ['{0}_{1}'.format(alg,th)] if alg == 'otf' else [ alg ] )
-            legendPlots = tuple(plots)
-            allaxes += [ax]
-    
+		legendPlots = tuple(plots)
+        allaxes += [ax]
+
     # add x label
 
-#for ax in allaxes[1:]:
+#   for ax in allaxes[1:]:
 #        ax.get_xaxis().set_visible(False)
     allaxes[0].set_xlabel('time (slotframe cycles)')
     
@@ -396,10 +402,10 @@ def plot_vs_time(plotData,ymin=None,ymax=None,ylabel=None,filename=None,doPlot=T
     fig.legend(
         legendPlots,
         legendText,
-        'upper right',
-        prop={'size':8},
+#         loc='best',
+#        prop={'size':8},
     )
-    
+
     matplotlib.pyplot.savefig(os.path.join(DATADIR,'{0}.png'.format(filename)))
     matplotlib.pyplot.savefig(os.path.join(DATADIR,'{0}.eps'.format(filename)))
     matplotlib.pyplot.close('all')
@@ -555,11 +561,11 @@ def gather_per_cycle_data(dataBins, parameter, factor=1.0):
             f.write('\n============ {0}\n'.format('gather raw data'))
             f.write(pp.pformat(plotData))
     
-    # Multiply by factor
+     # Multiply by factor
     for ((otfThreshold,pkPeriod,algorithm,parent,buffer_size),perCycleData) in plotData.items():
         for cycle in perCycleData.keys():
             perCycleData[cycle] = [ factor * val for val in perCycleData[cycle] ]
-    
+
     # plotData = {
     #     (otfThreshold,pkPeriod) = {
     #         cycle0: [run0,run1, ...],
@@ -580,7 +586,7 @@ def plot_txQueueFill_vs_time(dataBins):
     plotData  = gather_per_cycle_data(dataBins, 'txQueueFill')
     
     for b in [10, 100]:
-        for p in [1,3]:
+        for p in [1,2,3]:
             plot_vs_time(
                 plotData = dict(((th,per,alg),data) for (th,per,alg,par,buf),data in plotData.items() if buf == b and par == p ),
                 ymin     = 0,
@@ -595,7 +601,7 @@ def plot_appReachesDagroot_vs_time(dataBins):
     plotData  = gather_per_cycle_data(dataBins, 'appReachesDagroot')
     
     for b in [10, 100]:
-        for p in [1,3]:
+        for p in [1,2,3]:
             plot_vs_time(
                 plotData = dict(((th,per,alg),data) for (th,per,alg,par,buf),data in plotData.items() if buf == b and par == p ),
                 ymin     = 0,
@@ -611,7 +617,7 @@ def plot_numRxCells_vs_time(dataBins):
     plotData  = gather_per_cycle_data(dataBins, 'numRxCells')
     
     for b in [10, 100]:
-        for p in [1,3]:
+        for p in [1,2,3]:
             plot_vs_time(
                 plotData = dict(((th,per,alg),data) for (th,per,alg,par,buf),data in plotData.items() if buf == b and par == p ),
                 ymin     = 0,
@@ -626,7 +632,7 @@ def plot_chargeConsumed_vs_time(dataBins):
     plotData  = gather_per_cycle_data(dataBins, 'chargeConsumed', 1e-5)
     
     for b in [10, 100]:
-        for p in [1,3]:
+        for p in [1,2,3]:
             plot_vs_time(
                 plotData = dict(((th,per,alg),data) for (th,per,alg,par,buf),data in plotData.items() if buf == b and par == p ),
                 ymin     = 0,
@@ -708,7 +714,7 @@ def plot_latency_vs_time(dataBins):
     plotData  = gather_latency_data(dataBins)
     
     for b in [10, 100]:
-        for p in [1,3]:
+        for p in [1,2,3]:
             plot_vs_time(
                 plotData = dict(((th,per,alg),data) for (th,per,alg,par,buf),data in plotData.items() if buf == b and par == p ),
                 ymin     = 0,
@@ -1311,30 +1317,36 @@ def plot_reliability_vs_time(dataBins):
                 )
             }
 
-        plot_vs_time(
-            plotData = plotdata,
-            ymin     = 0,
-            ymax     = 50,
-            ylabel   = val_str,
-            filename = val_str + '_vs_time',
-        )
+        for b in [10, 100]:
+            for p in [1,2,3]:
+                plot_vs_time(
+                    plotData = dict(((th,per,alg),data) for (th,per,alg,par,buf),data in plotdata.items() if buf == b and par == p ),
+                    ymin     = 0,
+                    ymax     = 50,
+                    ylabel   = val_str,
+                    filename = val_str + '_vs_time_buf_{}_par_{}'.format(b,p),
+                    withError = False,
+                )
 
         plotdataCum = {}
-        for ((otfThreshold,pkPeriod,algorithm),filepaths) in dataBins.items():
-            plotdataCum[(otfThreshold,pkPeriod,algorithm)] = {
+        for ((otfThreshold,pkPeriod,algorith,parent_size,buffer_sizem),filepaths) in dataBins.items():
+            plotdataCum[(otfThreshold,pkPeriod,algorith,parent_size,buffer_sizem)] = {
                 i: list(k) for i,k in enumerate(
                    zip(*map(numpy.cumsum,
                             gatherPerRunData(filepaths, val_str).values()))
                 )
             }
 
-        plot_vs_time(
-            plotData = plotdataCum,
-            ymin     = 0,
-            ymax     = 400,
-            ylabel   = val_str + 'Cum',
-            filename = val_str + '_cum_vs_time',
-        )
+        for b in [10, 100]:
+            for p in [1,2,3]:
+                plot_vs_time(
+                    plotData = dict(((th,per,alg),data) for (th,per,alg,par,buf),data in plotdataCum.items() if buf == b and par == p ),
+                    ymin     = 0,
+                    ymax     = (400 if val_str == 'txQueueFill' else 105 ),
+                    ylabel   = val_str + '_cum',
+                    filename = val_str + '_cum_vs_time_buf_{}_par_{}'.format(b,p),
+                    withError = False,
+                )
 
 def plot_reliability_vs_threshold(dataBins):
     
@@ -1553,12 +1565,13 @@ def main():
     
     dataBins = binDataFiles()
 
-#    plot_txQueueFill_vs_time(dataBins)
-#    plot_appReachesDagroot_vs_time(dataBins)
-#    plot_time_all_reached_vs_threshold(dataBins)
-#    plot_max_latency_vs_threshold(dataBins)
-#    plot_numRxCells_vs_time(dataBins)
+    plot_txQueueFill_vs_time(dataBins)
+    plot_appReachesDagroot_vs_time(dataBins)
+    plot_time_all_reached_vs_threshold(dataBins)
+    plot_max_latency_vs_threshold(dataBins)
+    plot_numRxCells_vs_time(dataBins)
     plot_chargeConsumed_vs_time(dataBins)
+    plot_reliability_vs_time(dataBins)
 
 #  OLD PLOTS
     
@@ -1584,7 +1597,6 @@ def main():
     
     # reliability
 #    plot_reliability_vs_threshold(dataBins)
-#     plot_reliability_vs_time(dataBins)
 
 if __name__=="__main__":
     main()
