@@ -585,7 +585,7 @@ def plot_txQueueFill_vs_time(dataBins):
 
     plotData  = gather_per_cycle_data(dataBins, 'txQueueFill')
 
-    for b in [10, 100]:
+    for b in [5, 10, 15]:
         for p in [1,2,3]:
             plot_vs_time(
                 plotData = dict(((th,per,alg),data) for (th,per,alg,par,buf),data in plotData.items() if buf == b and par == p ),
@@ -600,7 +600,7 @@ def plot_appReachesDagroot_vs_time(dataBins):
 
     plotData  = gather_per_cycle_data(dataBins, 'appReachesDagroot')
 
-    for b in [10, 100]:
+    for b in [5, 10, 15]:
         for p in [1,2,3]:
             plot_vs_time(
                 plotData = dict(((th,per,alg),data) for (th,per,alg,par,buf),data in plotData.items() if buf == b and par == p ),
@@ -616,7 +616,7 @@ def plot_numRxCells_vs_time(dataBins):
 
     plotData  = gather_per_cycle_data(dataBins, 'numRxCells')
 
-    for b in [10, 100]:
+    for b in [5, 10, 15]:
         for p in [1,2,3]:
             plot_vs_time(
                 plotData = dict(((th,per,alg),data) for (th,per,alg,par,buf),data in plotData.items() if buf == b and par == p ),
@@ -631,7 +631,7 @@ def plot_chargeConsumed_vs_time(dataBins):
 
     plotData  = gather_per_cycle_data(dataBins, 'chargeConsumed', 1e-5)
 
-    for b in [10, 100]:
+    for b in [5, 10, 15]:
         for p in [1,2,3]:
             plot_vs_time(
                 plotData = dict(((th,per,alg),data) for (th,per,alg,par,buf),data in plotData.items() if buf == b and par == p ),
@@ -713,7 +713,7 @@ def plot_latency_vs_time(dataBins):
 
     plotData  = gather_latency_data(dataBins)
 
-    for b in [10, 100]:
+    for b in [5, 10, 15]:
         for p in [1,2,3]:
             plot_vs_time(
                 plotData = dict(((th,per,alg),data) for (th,per,alg,par,buf),data in plotData.items() if buf == b and par == p ),
@@ -1317,7 +1317,7 @@ def plot_reliability_vs_time(dataBins):
                 )
             }
 
-        for b in [10, 100]:
+        for b in [5, 10, 15]:
             for p in [1,2,3]:
                 plot_vs_time(
                     plotData = dict(((th,per,alg),data) for (th,per,alg,par,buf),data in plotdata.items() if buf == b and par == p ),
@@ -1337,7 +1337,7 @@ def plot_reliability_vs_time(dataBins):
                 )
             }
 
-        for b in [10, 100]:
+        for b in [5, 10, 15]:
             for p in [1,2,3]:
                 plot_vs_time(
                     plotData = dict(((th,per,alg),data) for (th,per,alg,par,buf),data in plotdataCum.items() if buf == b and par == p ),

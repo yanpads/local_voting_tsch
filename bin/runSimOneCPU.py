@@ -217,7 +217,7 @@ def parseCliOptions():
         dest       = 'buffer',
         nargs      = '+',
         type       = str,
-        default    = [10, 100],
+        default    = [5, 10, 15],
         help       = 'Select the buffer space per node in packets, 10 or 100',
     )
     parser.add_argument('--parents',

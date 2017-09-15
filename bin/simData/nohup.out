@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "../plotStuff.py", line 1602, in <module>
+    main()
+  File "../plotStuff.py", line 1566, in main
+    dataBins = binDataFiles()
+  File "../plotStuff.py", line 99, in binDataFiles
+    for line in f:
+KeyboardInterrupt
