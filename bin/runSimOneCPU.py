@@ -120,8 +120,7 @@ def parseCliOptions():
         dest       = 'numPacketsBurst',
         nargs      = '+',
         type       = int,
-        # default    = 5,
-        default = None,
+        default    = [1, 5, 25],
         help       = '[app] Number of packets in a burst, per node.',
     )
     # rpl
@@ -217,7 +216,7 @@ def parseCliOptions():
         dest       = 'buffer',
         nargs      = '+',
         type       = str,
-        default    = [5, 10, 15],
+        default    = [10, 100],
         help       = 'Select the buffer space per node in packets, 10 or 100',
     )
     parser.add_argument('--parents',

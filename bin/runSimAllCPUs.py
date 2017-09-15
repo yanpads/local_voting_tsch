@@ -19,7 +19,7 @@ def runOneSim(params):
     command    += ['$HOME/local/bin/python runSimOneCPU.py']
     command    += ['--numRuns {0}'.format(numRuns)]
     command    += ['--cpuID {0}'.format(cpuID)]
-    command    += ['--numPacketsBurst {0}'.format(5)]
+    # command    += ['--numPacketsBurst {0}'.format(5)]
     command    += ['--burstTimestamp {0}'.format(20)]
     # command    += ['--numChans {0}'.format(1)]
     command    += ['"']
