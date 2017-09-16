@@ -7,6 +7,138 @@ simulation results. Comparison of Local Voting with OTF, thresholds 0,1,4,10,
 
 You can find eps and png figures of the results in folder bin/simData/
 
+Some indicative results:
+
+Aggregated Values vs parameters
+===============================
+
+1 packet(s) per node per burst
+------------------------------
+### chargeConsumed, 1 packets/node/burst
+![chargeConsumed](bin/simData/chargeConsumed_vs_threshold_pkt_1.png)
+
+### reliability, 1 packets/node/burst
+![reliability](bin/simData/reliability_vs_threshold_pkt_1.png)
+
+### time_all_root, 1 packets/node/burst
+![time_all_root](bin/simData/time_all_root_vs_threshold_pkt_1.png)
+
+### max_latency, 1 packets/node/burst
+![max_latency](bin/simData/max_latency_vs_threshold_pkt_1.png)
+
+### latency, 1 packets/node/burst
+![latency](bin/simData/latency_vs_threshold_pkt_1.png)
+
+### max_queue_delay, 1 packets/node/burst
+![max_queue_delay](bin/simData/max_queue_delay_vs_threshold_pkt_1.png)
+
+### queue_delay, 1 packets/node/burst
+![queue_delay](bin/simData/queue_delay_vs_threshold_pkt_1.png)
+
+5 packet(s) per node per burst
+------------------------------
+### chargeConsumed, 5 packets/node/burst
+![chargeConsumed](bin/simData/chargeConsumed_vs_threshold_pkt_5.png)
+
+### reliability, 5 packets/node/burst
+![reliability](bin/simData/reliability_vs_threshold_pkt_5.png)
+
+### time_all_root, 5 packets/node/burst
+![time_all_root](bin/simData/time_all_root_vs_threshold_pkt_5.png)
+
+### max_latency, 5 packets/node/burst
+![max_latency](bin/simData/max_latency_vs_threshold_pkt_5.png)
+
+### latency, 5 packets/node/burst
+![latency](bin/simData/latency_vs_threshold_pkt_5.png)
+
+### max_queue_delay, 5 packets/node/burst
+![max_queue_delay](bin/simData/max_queue_delay_vs_threshold_pkt_5.png)
+
+### queue_delay, 5 packets/node/burst
+![queue_delay](bin/simData/queue_delay_vs_threshold_pkt_5.png)
+
+25 packet(s) per node per burst
+------------------------------
+### chargeConsumed, 25 packets/node/burst
+![chargeConsumed](bin/simData/chargeConsumed_vs_threshold_pkt_25.png)
+
+### reliability, 25 packets/node/burst
+![reliability](bin/simData/reliability_vs_threshold_pkt_25.png)
+
+### time_all_root, 25 packets/node/burst
+![time_all_root](bin/simData/time_all_root_vs_threshold_pkt_25.png)
+
+### max_latency, 25 packets/node/burst
+![max_latency](bin/simData/max_latency_vs_threshold_pkt_25.png)
+
+### latency, 25 packets/node/burst
+![latency](bin/simData/latency_vs_threshold_pkt_25.png)
+
+### max_queue_delay, 25 packets/node/burst
+![max_queue_delay](bin/simData/max_queue_delay_vs_threshold_pkt_25.png)
+
+### queue_delay, 25 packets/node/burst
+![queue_delay](bin/simData/queue_delay_vs_threshold_pkt_25.png)
+
+Some indicative scenarios
+===================
+
+Scenario buffer: 100, parents: 1, packets: 25
+------------------------------
+### chargeConsumed
+![chargeConsumed](bin/simData/chargeConsumed_vs_time_buf_100_par_1_pkt_25.png)
+
+### appReachesDagroot_cum
+![appReachesDagroot_cum](bin/simData/appReachesDagroot_cum_vs_time_buf_100_par_1_pkt_25.png)
+
+### appReachesDagroot
+![appReachesDagroot](bin/simData/appReachesDagroot_vs_time_buf_100_par_1_pkt_25.png)
+
+### txQueueFill
+![txQueueFill](bin/simData/txQueueFill_vs_time_buf_100_par_1_pkt_25.png)
+
+### numRxCells
+![numRxCells](bin/simData/numRxCells_vs_time_buf_100_par_1_pkt_25.png)
+
+Scenario buffer: 100, parents: 2, packets: 5
+------------------------------
+### chargeConsumed
+![chargeConsumed](bin/simData/chargeConsumed_vs_time_buf_100_par_2_pkt_25.png)
+
+### appReachesDagroot_cum
+![appReachesDagroot_cum](bin/simData/appReachesDagroot_cum_vs_time_buf_100_par_2_pkt_25.png)
+
+### appReachesDagroot
+![appReachesDagroot](bin/simData/appReachesDagroot_vs_time_buf_100_par_2_pkt_25.png)
+
+### txQueueFill
+![txQueueFill](bin/simData/txQueueFill_vs_time_buf_100_par_2_pkt_25.png)
+
+### numRxCells
+![numRxCells](bin/simData/numRxCells_vs_time_buf_100_par_2_pkt_25.png)
+
+Scenario buffer: 10, parents: 3, packets: 1
+------------------------------
+### chargeConsumed
+![chargeConsumed](bin/simData/chargeConsumed_vs_time_buf_10_par_3_pkt_25.png)
+
+### appReachesDagroot_cum
+![appReachesDagroot_cum](bin/simData/appReachesDagroot_cum_vs_time_buf_10_par_3_pkt_25.png)
+
+### appReachesDagroot
+![appReachesDagroot](bin/simData/appReachesDagroot_vs_time_buf_10_par_3_pkt_25.png)
+
+### txQueueFill
+![txQueueFill](bin/simData/txQueueFill_vs_time_buf_10_par_3_pkt_25.png)
+
+### numRxCells
+![numRxCells](bin/simData/numRxCells_vs_time_buf_10_par_3_pkt_25.png)
+
+
+
+
+
 
 
 The Remainder of this document is orginal README from the parent repository,

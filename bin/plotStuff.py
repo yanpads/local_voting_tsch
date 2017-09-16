@@ -137,7 +137,7 @@ def binDataFiles():
             output     += ['   {0}'.format(f)]
     output  = '\n'.join(output)
 
-    print "OUTPUT: %s" % output
+    # print "OUTPUT: %s" % output
     return dataBins
 
 def gatherPerRunData(infilepaths,elemName):
@@ -344,7 +344,7 @@ def plot_vs_time(plotData,ymin=None,ymax=None,ylabel=None,filename=None,doPlot=T
 
     def plotForEachPkPeriod(ax,plotData,pkPeriod_p):
         ax.set_xlim(xmin=0,xmax=100)
-        ax.set_ylim(ymin=ymin,ymax=ymax)
+#        ax.set_ylim(ymin=ymin,ymax=ymax)
         if pkPeriod_p!='NA':
             ax.text(2,0.9*ymax,'packet period {0}s'.format(pkPeriod_p))
         plots = []
@@ -376,7 +376,7 @@ def plot_vs_time(plotData,ymin=None,ymax=None,ylabel=None,filename=None,doPlot=T
     else:
         ax = fig.add_axes([0.10, 0.10, 0.85, 0.85])
         ax.set_xlim(xmin=0,xmax=100)
-        ax.set_ylim(ymin=ymin,ymax=ymax)
+#        ax.set_ylim(ymin=ymin,ymax=ymax)
         plots = []
         legends = []
         for alg in [ 'otf', 'local_voting' ]:
@@ -444,12 +444,12 @@ def plot_vs_threshold(plotData,ymin,ymax,ylabel,filename):
             f.write(pp.pformat(plotData))
 
     # collapse all cycles
-    for ((otfThreshold,pkPeriod,algorithm,parent_size,buffer_size,numPacketsBurst),perCycleData) in plotData.items():
+    for ((otfThreshold,pkPeriod,algorithm,parent_size,buffer_size),perCycleData) in plotData.items():
         temp = []
         for (k,v) in perCycleData.items():
             temp += v
 
-        plotData[(otfThreshold,pkPeriod,algorithm,parent_size,buffer_size,numPacketsBurst)] = temp
+        plotData[(otfThreshold,pkPeriod,algorithm,parent_size,buffer_size)] = temp
 
     # plotData = {
     #     (otfThreshold,pkPeriod) = [
@@ -468,9 +468,9 @@ def plot_vs_threshold(plotData,ymin,ymax,ylabel,filename):
             f.write(pp.pformat(plotData))
 
     # calculate mean and confidence interval
-    for ((otfThreshold,pkPeriod,algorithm,parent_size,buffer_size,numPacketsBurst),perCycleData) in plotData.items():
+    for ((otfThreshold,pkPeriod,algorithm,parent_size,buffer_size),perCycleData) in plotData.items():
         (m,confint) = calcMeanConfInt(perCycleData)
-        plotData[(otfThreshold,pkPeriod,algorithm,parent_size,buffer_size,numPacketsBurst)] = {
+        plotData[(otfThreshold,pkPeriod,algorithm,parent_size,buffer_size)] = {
             'mean':      m,
             'confint':   confint,
         }
@@ -489,7 +489,7 @@ def plot_vs_threshold(plotData,ymin,ymax,ylabel,filename):
     algorithms          = []
     buffer_sizes        = []
     parent_sizes        = []
-    for (otfThreshold,pkPeriod,algorithm,parent_size,buffer_size,numPacketsBurst) in plotData.keys():
+    for (otfThreshold,pkPeriod,algorithm,parent_size,buffer_size) in plotData.keys():
         pkPeriods      += [pkPeriod]
         otfThresholds  += [otfThreshold]
         algorithms     += [algorithm]
@@ -499,14 +499,13 @@ def plot_vs_threshold(plotData,ymin,ymax,ylabel,filename):
     algorithms          = sorted(list(set(algorithms)))
     buffer_sizes        = sorted(list(set(buffer_sizes)))
     parent_sizes        = sorted(list(set(parent_sizes)))
-    numPacketsBursts    = sorted(list(getNumPacketsBurst(plotData)))
 
     #===== plot
 
 #    fig = matplotlib.pyplot.figure()
     fig, ax = matplotlib.pyplot.subplots()
     matplotlib.pyplot.ylim(ymin=ymin,ymax=ymax)
-    ax.set_xlabel('Parameters: (num of parents, buffer size, Pkts/node/burst)')
+    ax.set_xlabel('Parameters: (num of parents, buffer size)')
     ax.set_ylabel(ylabel)
     bars = []
     legends = []
@@ -519,9 +518,9 @@ def plot_vs_threshold(plotData,ymin,ymax,ylabel,filename):
                 continue
 
             d = {}
-            for ((otfThreshold,pkPeriod,pkAlgorithm,parent_size,buffer_size,numPacketsBurst),data) in plotData.items():
+            for ((otfThreshold,pkPeriod,pkAlgorithm,parent_size,buffer_size),data) in plotData.items():
                 if otfThreshold == threshold and pkAlgorithm == algorithm:
-                    d[parent_size,buffer_size,numPacketsBurst] = data
+                    d[parent_size,buffer_size] = data
 
             x     = sorted(d.keys())
             tics  = [i+.25+offset for i in range(len(x))]
@@ -748,41 +747,48 @@ def plot_latency_vs_threshold(dataBins):
 
     plotData  = gather_ave_data(dataBins, 'aveLatency', 'appReachesDagroot')
 
-    plot_vs_threshold(
-        plotData   = plotData,
-        ymin       = 0,
-        ymax       = 2.5,
-        ylabel     = 'average end-to-end latency (s)',
-        filename   = 'latency_vs_threshold',
-    )
+    ymax = { 1: 2.5, 5: 15, 25: 40 } 
+
+    for n in getNumPacketsBurst(plotData):
+        plot_vs_threshold(
+            plotData   = dict(((th,per,alg,par,buf),data) for (th,per,alg,par,buf,pkt),data in plotData.items() if pkt == n),
+            ymin       = 0,
+            ymax       = ymax[n],
+            ylabel     = 'average end-to-end latency (s)',
+            filename   = 'latency_vs_threshold_pkt_{}'.format(n),
+        )
+
 
 def plot_ave_q_delay_vs_threshold(dataBins):
 
     plotData  = gather_ave_data(dataBins, 'aveQueueDelay', 'numTx')
 
-    plot_vs_threshold(
-        plotData   = plotData,
-        ymin       = 0,
-        ymax       = 2.5,
-        ylabel     = 'average queue delay (s)',
-        filename   = 'queue_delay_vs_threshold',
-    )
+    ymax = { 1: 2.5, 5: 15, 25: 40 } 
+
+    for n in getNumPacketsBurst(plotData):
+        plot_vs_threshold(
+            plotData   = dict(((th,per,alg,par,buf),data) for (th,per,alg,par,buf,pkt),data in plotData.items() if pkt == n),
+            ymin       = 0,
+            ymax       = ymax[n],
+            ylabel     = 'average queue delay (s)',
+            filename   = 'queue_delay_vs_threshold_pkt_{}'.format(n),
+        )
 
 def gather_max_data(dataBins, label):
     plotData  = {}
-    unit_factor = getSlotDuration(dataBins) if label == 'aveLatency' else 1
+    unit_factor = getSlotDuration(dataBins) if label == 'aveLatency' else 1e-5 if label == 'chargeConsumed' else 1
     for ((otfThreshold,pkPeriod,algorithm,parent_size,buffer_size,numPacketsBurst),filepaths) in dataBins.items():
         perCycle = gatherPerCycleData(filepaths, label)
 
         max_values = [ 0 for i in perCycle[0]]
-        print "file: {}, percyle: {}, {}".format(filepaths,perCycle,(otfThreshold,pkPeriod,algorithm,parent_size,buffer_size,numPacketsBurst))
+        # print "file: {}, percyle: {}, {}".format(filepaths,perCycle,(otfThreshold,pkPeriod,algorithm,parent_size,buffer_size,numPacketsBurst))
         for k,v in perCycle.items():
             for run,value in enumerate(v):
                 lat = unit_factor * value
                 if lat > max_values[run]:
                     max_values[run] = lat
-            print k,len(v)
-        print "max_{}: {}".format(label,max_values)
+            # print k,len(v)
+        # print "max_{}: {}".format(label,max_values)
 
         plotData[(otfThreshold,pkPeriod,algorithm,parent_size,buffer_size,numPacketsBurst)] = {0: max_values}
 
@@ -794,7 +800,7 @@ def gather_ave_data(dataBins, label, count_label):
     for ((otfThreshold,pkPeriod,algorithm,parent_size,buffer_size,numPacketsBurst),filepaths) in dataBins.items():
         perCycle = gatherPerCycleData(filepaths, label)
         perCycle_count = gatherPerCycleData(filepaths, count_label)
-        print "perCyple: {}\n\n, count: {}\n\n".format(perCycle, perCycle_count)
+#        print "perCyple: {}\n\n, count: {}\n\n".format(perCycle, perCycle_count)
 
         sum_values = [ 0 for i in perCycle[0]]
         count_values = [ 0 for i in perCycle[0]]
@@ -817,26 +823,46 @@ def plot_max_latency_vs_threshold(dataBins):
 
     plotData  = gather_max_data(dataBins, 'aveLatency')
 
-    plot_vs_threshold(
-        plotData   = plotData,
-        ymin       = 0,
-        ymax       = 15,
-        ylabel     = 'max end-to-end latency (s)',
-        filename   = 'max_latency_vs_threshold',
-    )
+    ymax = { 1: 15, 5: 60, 25: 100 } 
+
+    for n in getNumPacketsBurst(plotData):
+        plot_vs_threshold(
+            plotData   = dict(((th,per,alg,par,buf),data) for (th,per,alg,par,buf,pkt),data in plotData.items() if pkt == n),
+            ymin       = 0,
+            ymax       = ymax[n],
+            ylabel     = 'max end-to-end latency (s)',
+            filename   = 'max_latency_vs_threshold_pkt_{}'.format(n),
+        )
 
 def plot_max_queue_delay_vs_threshold(dataBins):
 
     plotData  = gather_max_data(dataBins, 'aveQueueDelay')
 
-    plot_vs_threshold(
-        plotData   = plotData,
-        ymin       = 0,
-        ymax       = 3000,
-        ylabel     = 'max queue delay (ms)',
-        filename   = 'max_queue_delay_vs_threshold',
-    )
+    ymax = { 1: 4000, 5: 20000, 25: 100000 } 
 
+    for n in getNumPacketsBurst(plotData):
+        plot_vs_threshold(
+            plotData   = dict(((th,per,alg,par,buf),data) for (th,per,alg,par,buf,pkt),data in plotData.items() if pkt == n),
+            ymin       = 0,
+            ymax       = ymax[n],
+            ylabel     = 'max queue delay (ms)',
+            filename   = 'max_queue_delay_vs_threshold_pkt_{}'.format(n),
+        )
+
+def plot_chargeConsumed_vs_threshold(dataBins):
+
+    plotData  = gather_max_data(dataBins, 'chargeConsumed')
+
+    ymax = { 1: 7, 5: 15, 25: 20 } 
+
+    for n in getNumPacketsBurst(plotData):
+        plot_vs_threshold(
+            plotData   = dict(((th,per,alg,par,buf),data) for (th,per,alg,par,buf,pkt),data in plotData.items() if pkt == n),
+            ymin       = 0,
+            ymax       = ymax[n],
+            ylabel     = 'charge consumed x1e5',
+            filename   = 'chargeConsumed_vs_threshold_pkt_{}'.format(n),
+        )
 
 def gather_time_all_reached(dataBins):
     plotData  = {}
@@ -850,7 +876,7 @@ def gather_time_all_reached(dataBins):
                 if value != 0:
                     lastnonzero[run] = k
             # print k,len(v)
-        print "lastnonzero: {}".format(lastnonzero)
+#        print "lastnonzero: {}".format(lastnonzero)
 
         plotData[(otfThreshold,pkPeriod,algorithm,parent_size,buffer_size,numPacketsBurst)] = {0: lastnonzero}
 
@@ -861,14 +887,16 @@ def plot_time_all_reached_vs_threshold(dataBins):
 
     plotData  = gather_time_all_reached(dataBins)
 
-    print plotData
-    plot_vs_threshold(
-        plotData   = plotData,
-        ymin       = 60,
-        ymax       = 75,
-        ylabel     = 'time for last packet to reach root',
-        filename   = 'time_all_root_vs_threshold',
-    )
+    ymax = { 1: 75, 5: 100, 25: 100 } 
+#    print plotData
+    for n in getNumPacketsBurst(plotData):
+        plot_vs_threshold(
+            plotData   = dict(((th,per,alg,par,buf),data) for (th,per,alg,par,buf,pkt),data in plotData.items() if pkt == n),
+            ymin       = 60,
+            ymax       = ymax[n],
+            ylabel     = 'time for last packet to reach root',
+            filename   = 'time_all_root_vs_threshold_pkt_{}'.format(n),
+        )
 
 #===== numCells
 
@@ -1516,41 +1544,44 @@ def plot_reliability_vs_threshold(dataBins):
     algorithms          = sorted(list(set(algorithms)))
     parent_sizes        = sorted(list(set(parent_sizes)))
     buffer_sizes        = sorted(list(set(buffer_sizes)))
-    numPacketsBurst     = sorted(list(getNumPacketsBurst(reliabilityData)))
+    numPacketsBursts    = sorted(list(getNumPacketsBurst(reliabilityData)))
 
      #===== plot
 
-    fig, ax = matplotlib.pyplot.subplots()
-    # matplotlib.pyplot.ylim(ymin=ymin,ymax=ymax)
-    matplotlib.pyplot.ylim(ymin=0.94,ymax=1.015)
+    ymin = {1: 0.94, 5: 0.80, 25: 0.20}
+    for pkt in numPacketsBursts:
+        fig, ax = matplotlib.pyplot.subplots()
+        # matplotlib.pyplot.ylim(ymin=ymin,ymax=ymax)
+        matplotlib.pyplot.ylim(ymin=ymin[pkt],ymax=1.015)
 #    matplotlib.pyplot.xlabel('Parameters, (buffer,parents)')
-    ax.set_ylabel('end-to-end reliability')
-    bars = []
-    legends = []
-    offset = 0
-    x = []
-    for algorithm in algorithms:
-        for threshold in otfThresholds:
+        ax.set_ylabel('end-to-end reliability')
+        bars = []
+        legends = []
+        offset = 0
+        x = []
+        for algorithm in algorithms:
+            for threshold in otfThresholds:
 
-            if algorithm == 'local_voting' and threshold != 0:
-                continue
+                if algorithm == 'local_voting' and threshold != 0:
+                    continue
 
-            d = {}
-            for ((otfThreshold,pkPeriod,pkAlgorithm,parent_size,buffer_size,numPacketsBurst),data) in reliabilityData.items():
-                if otfThreshold == threshold and pkAlgorithm == algorithm:
-                    d[buffer_size,parent_size,numPacketsBurst] = data
+                d = {}
+                for ((otfThreshold,pkPeriod,pkAlgorithm,parent_size,buffer_size,numPacketsBurst),data) in reliabilityData.items():
+                    if otfThreshold == threshold and pkAlgorithm == algorithm and numPacketsBurst == pkt:
+                        d[buffer_size,parent_size,numPacketsBurst] = data
 
-            x     = sorted(d.keys())
-            tics  = [i+.25+offset for i in range(len(x))]
-            y     = [d[k]['mean'] for k in x]
-            yerr  = [d[k]['confint'] for k in x]
-            bars += [ax.bar(tics, y, 0.1, color= COLORS_TH[threshold ], edgecolor='black', hatch=FILLSTYLES_ALG[algorithm], ecolor=ECOLORS_TH[threshold], yerr=yerr)]
-            legends += [ '{}, thr={}'.format(algorithm,threshold) ]
-            offset += 0.15
+                x     = sorted(d.keys())
+                tics  = [i+.25+offset for i in range(len(x))]
+                y     = [d[k]['mean'] for k in x]
+                yerr  = [d[k]['confint'] for k in x]
+                t     = threshold if algorithm == 'otf' else 'NA'
+                bars += [ax.bar(tics, y, 0.1, color= COLORS_TH[t], edgecolor='black', ecolor=ECOLORS_TH[t], yerr=yerr)]
+                legends += [ '{}, thr={}'.format(algorithm,threshold) if algorithm == 'otf' else algorithm ]
+                offset += 0.15
 
-    ax.set_xticks( [i+.25+offset/2 for i in range(len(x))])
-    ax.set_xticklabels(x)
-#    ax.legend( bars, legends)
+        ax.set_xticks( [i+.25+offset/2 for i in range(len(x))])
+        ax.set_xticklabels([(b,p) for (b,p,n) in x])
+        ax.legend( bars, legends, loc="lower right")
 
 ##===== plot
 
@@ -1578,9 +1609,9 @@ def plot_reliability_vs_threshold(dataBins):
 #           label    = 'packet period {0}s'.format(period)
 #       )
 #    matplotlib.pyplot.legend(prop={'size':10})
-    matplotlib.pyplot.savefig(os.path.join(DATADIR,'reliability_vs_threshold.png'))
-    matplotlib.pyplot.savefig(os.path.join(DATADIR,'reliability_vs_threshold.eps'))
-    matplotlib.pyplot.close('all')
+        matplotlib.pyplot.savefig(os.path.join(DATADIR,'reliability_vs_threshold_pkt_{}.png'.format(pkt)))
+        matplotlib.pyplot.savefig(os.path.join(DATADIR,'reliability_vs_threshold_pkt_{}.eps'.format(pkt)))
+        matplotlib.pyplot.close('all')
 
 #============================ main ============================================
 
@@ -1588,24 +1619,26 @@ def main():
 
     dataBins = binDataFiles()
 
-    plot_txQueueFill_vs_time(dataBins)
-    plot_appReachesDagroot_vs_time(dataBins)
-    plot_time_all_reached_vs_threshold(dataBins)
-    plot_max_latency_vs_threshold(dataBins)
-    plot_numRxCells_vs_time(dataBins)
-    plot_chargeConsumed_vs_time(dataBins)
-    plot_reliability_vs_time(dataBins)
-
+#    plot_time_all_reached_vs_threshold(dataBins)
+#    plot_max_latency_vs_threshold(dataBins)
+#    plot_latency_vs_threshold(dataBins)
+#    plot_max_queue_delay_vs_threshold(dataBins)
+#    plot_ave_q_delay_vs_threshold(dataBins)
+#    plot_numRxCells_vs_time(dataBins)
+#    plot_chargeConsumed_vs_time(dataBins)
+#    plot_chargeConsumed_vs_threshold(dataBins)
+#    plot_reliability_vs_time(dataBins)
+    plot_reliability_vs_threshold(dataBins)
 #  OLD PLOTS
 
+#    plot_txQueueFill_vs_time(dataBins)
+#    plot_appReachesDagroot_vs_time(dataBins)
     # latency
 #    plot_latency_vs_time(dataBins)
-#    plot_latency_vs_threshold(dataBins)
 #    plot_max_latency_vs_threshold(dataBins)
 #    plot_time_all_reached_vs_threshold(dataBins)
 
     # Queue Delay
-#    plot_max_queue_delay_vs_threshold(dataBins)
 #    plot_ave_q_delay_vs_threshold(dataBins)
 
 
