@@ -417,7 +417,7 @@ def plot_vs_time(plotData,ymin=None,ymax=None,ylabel=None,filename=None,doPlot=T
     fig.legend(
         legendPlots,
         legendText,
-#         loc='best',
+        loc='lower right',
 #        prop={'size':8},
     )
 
@@ -818,6 +818,23 @@ def gather_ave_data(dataBins, label, count_label):
 
     return plotData
 
+def gather_sum_data(dataBins, label):
+    plotData  = {}
+    unit_factor = getSlotDuration(dataBins) if label == 'aveLatency' else 0.001 if label == 'aveQueueDelay' else 1
+    for ((otfThreshold,pkPeriod,algorithm,parent_size,buffer_size,numPacketsBurst),filepaths) in dataBins.items():
+        perCycle = gatherPerCycleData(filepaths, label)
+
+        sum_values = [ 0 for i in perCycle[0]]
+
+        for k,v in perCycle.items():
+            for run,value in enumerate(v):
+                lat = unit_factor * value
+                sum_values[run] += lat
+
+        plotData[(otfThreshold,pkPeriod,algorithm,parent_size,buffer_size,numPacketsBurst)] = {0: [ v for run,v in enumerate(sum_values) ]  }
+
+    return plotData
+
 
 def plot_max_latency_vs_threshold(dataBins):
 
@@ -861,7 +878,7 @@ def plot_max_queue_delay_vs_threshold(dataBins):
 
 def plot_chargeConsumed_vs_threshold(dataBins):
 
-    plotData  = gather_max_data(dataBins, 'chargeConsumed')
+    charge  = gather_max_data(dataBins, 'chargeConsumed')
 
     ymax = { 1: 7, 5: 15, 25: 20 } 
 
@@ -874,7 +891,7 @@ def plot_chargeConsumed_vs_threshold(dataBins):
 #            filename   = 'chargeConsumed_vs_threshold_pkt_{}'.format(n),
 #        )
     plot_vs_threshold(
-        plotData   = dict(((th,per,alg,par,pkt),data) for (th,per,alg,par,buf,pkt),data in plotData.items() if buf == 100 and pkt in [5,25]),
+        plotData   = dict(((th,per,alg,par,pkt),data) for (th,per,alg,par,buf,pkt),data in charge.items() if buf == 100 and pkt in [5,25]),
         ymin       = 0,
         ymax       = 20,
         ylabel     = 'charge consumed x1e5',
@@ -882,6 +899,25 @@ def plot_chargeConsumed_vs_threshold(dataBins):
         legend = '(num of parents, packets per burst)'
     )
 
+    work = gather_sum_data(dataBins, 'appReachesDagroot')
+
+    charge_per_packet = {}
+
+    for (th, per, alg, par, buf, pkt), data in work.items():
+        charge_per_packet[(th, per, alg, par, buf, pkt)] = { 0: [ c / w if w > 0 else None for w, c in zip(data[0], charge[(th, per, alg, par, buf, pkt)][0]) ]}
+
+    print "Charge: ", charge
+    print "Work: ", work
+    print "charge_per_packet: ", charge_per_packet
+
+    plot_vs_threshold(
+        plotData   = dict(((th,per,alg,par,pkt),data) for (th,per,alg,par,buf,pkt),data in charge_per_packet.items() if buf == 100 and pkt in [5,25]),
+        ymin       = 0,
+        ymax       = 0.01,
+        ylabel     = 'charge consumed/packet received x1e5',
+        filename   = 'chargeConsumedPerRecv_vs_threshold_buf_100',
+        legend = '(num of parents, packets per burst)'
+    )
 
 def gather_time_all_reached(dataBins):
     plotData  = {}
@@ -1519,9 +1555,10 @@ def plot_reliability_vs_threshold(dataBins):
         for cpuID_runNum in appReachedData[otfThreshold_pkPeriod]:
             g = float(appGeneratedData[otfThreshold_pkPeriod][cpuID_runNum])
             r = float(appReachedData[otfThreshold_pkPeriod][cpuID_runNum])
-            q = float(txQueueFillData[otfThreshold_pkPeriod][cpuID_runNum])
+            # q = float(txQueueFillData[otfThreshold_pkPeriod][cpuID_runNum])
             assert g>0
-            reliability = (r+q)/g
+            # reliability = (r+q)/g
+            reliability = r / g
             assert reliability>=0
             assert reliability<=1
             reliabilityData[otfThreshold_pkPeriod][cpuID_runNum] = reliability
@@ -1650,15 +1687,15 @@ def main():
 
     dataBins = binDataFiles()
 
-    plot_time_all_reached_vs_threshold(dataBins)
-    plot_max_latency_vs_threshold(dataBins)
+#    plot_time_all_reached_vs_threshold(dataBins)
+#    plot_max_latency_vs_threshold(dataBins)
 #    plot_latency_vs_threshold(dataBins)
 #    plot_max_queue_delay_vs_threshold(dataBins)
 #    plot_ave_q_delay_vs_threshold(dataBins)
 #    plot_numRxCells_vs_time(dataBins)
-#    plot_chargeConsumed_vs_time(dataBins)
+    plot_chargeConsumed_vs_time(dataBins)
     plot_chargeConsumed_vs_threshold(dataBins)
-#    plot_reliability_vs_time(dataBins)
+    plot_reliability_vs_time(dataBins)
 #    plot_reliability_vs_threshold(dataBins)
 
 
@@ -1668,11 +1705,8 @@ def main():
 #    plot_appReachesDagroot_vs_time(dataBins)
     # latency
 #    plot_latency_vs_time(dataBins)
-#    plot_max_latency_vs_threshold(dataBins)
-#    plot_time_all_reached_vs_threshold(dataBins)
 
     # Queue Delay
-#    plot_ave_q_delay_vs_threshold(dataBins)
 
 
     # numCells
