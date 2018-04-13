@@ -425,7 +425,7 @@ def plot_vs_time(plotData,ymin=None,ymax=None,ylabel=None,filename=None,doPlot=T
     matplotlib.pyplot.savefig(os.path.join(DATADIR,'{0}.eps'.format(filename)))
     matplotlib.pyplot.close('all')
 
-def plot_vs_threshold(plotData,ymin,ymax,ylabel,filename):
+def plot_vs_threshold(plotData,ymin,ymax,ylabel,filename,legend='(num of parents, buffer size)'):
 
     prettyp   = False
 
@@ -505,7 +505,7 @@ def plot_vs_threshold(plotData,ymin,ymax,ylabel,filename):
 #    fig = matplotlib.pyplot.figure()
     fig, ax = matplotlib.pyplot.subplots()
     matplotlib.pyplot.ylim(ymin=ymin,ymax=ymax)
-    ax.set_xlabel('Parameters: (num of parents, buffer size)')
+    ax.set_xlabel('Parameters: {0}'.format(legend))
     ax.set_ylabel(ylabel)
     bars = []
     legends = []
@@ -825,14 +825,24 @@ def plot_max_latency_vs_threshold(dataBins):
 
     ymax = { 1: 15, 5: 60, 25: 100 } 
 
-    for n in getNumPacketsBurst(plotData):
-        plot_vs_threshold(
-            plotData   = dict(((th,per,alg,par,buf),data) for (th,per,alg,par,buf,pkt),data in plotData.items() if pkt == n),
-            ymin       = 0,
-            ymax       = ymax[n],
-            ylabel     = 'max end-to-end latency (s)',
-            filename   = 'max_latency_vs_threshold_pkt_{}'.format(n),
-        )
+#    for n in getNumPacketsBurst(plotData):
+#        plot_vs_threshold(
+#            plotData   = dict(((th,per,alg,par,buf),data) for (th,per,alg,par,buf,pkt),data in plotData.items() if pkt == n),
+#            ymin       = 0,
+#            ymax       = ymax[n],
+#            ylabel     = 'max end-to-end latency (s)',
+#            filename   = 'max_latency_vs_threshold_pkt_{}'.format(n),
+#        )
+
+    plot_vs_threshold(
+        plotData   = dict(((th,per,alg,par,pkt),data) for (th,per,alg,par,buf,pkt),data in plotData.items() if buf == 100 and pkt in [5,25]),
+        ymin       = 0,
+        ymax       = 100,
+        ylabel     = 'max end-to-end latency (s)',
+        filename   = 'max_latency_vs_threshold_buf_100',
+        legend = '(num of parents, packets per burst)'
+    )
+
 
 def plot_max_queue_delay_vs_threshold(dataBins):
 
@@ -855,14 +865,23 @@ def plot_chargeConsumed_vs_threshold(dataBins):
 
     ymax = { 1: 7, 5: 15, 25: 20 } 
 
-    for n in getNumPacketsBurst(plotData):
-        plot_vs_threshold(
-            plotData   = dict(((th,per,alg,par,buf),data) for (th,per,alg,par,buf,pkt),data in plotData.items() if pkt == n),
-            ymin       = 0,
-            ymax       = ymax[n],
-            ylabel     = 'charge consumed x1e5',
-            filename   = 'chargeConsumed_vs_threshold_pkt_{}'.format(n),
-        )
+#    for n in getNumPacketsBurst(plotData):
+#        plot_vs_threshold(
+#            plotData   = dict(((th,per,alg,par,buf),data) for (th,per,alg,par,buf,pkt),data in plotData.items() if pkt == n),
+#            ymin       = 0,
+#            ymax       = ymax[n],
+#            ylabel     = 'charge consumed x1e5',
+#            filename   = 'chargeConsumed_vs_threshold_pkt_{}'.format(n),
+#        )
+    plot_vs_threshold(
+        plotData   = dict(((th,per,alg,par,pkt),data) for (th,per,alg,par,buf,pkt),data in plotData.items() if buf == 100 and pkt in [5,25]),
+        ymin       = 0,
+        ymax       = 20,
+        ylabel     = 'charge consumed x1e5',
+        filename   = 'chargeConsumed_vs_threshold_buf_100',
+        legend = '(num of parents, packets per burst)'
+    )
+
 
 def gather_time_all_reached(dataBins):
     plotData  = {}
@@ -889,14 +908,26 @@ def plot_time_all_reached_vs_threshold(dataBins):
 
     ymax = { 1: 75, 5: 100, 25: 100 } 
 #    print plotData
-    for n in getNumPacketsBurst(plotData):
-        plot_vs_threshold(
-            plotData   = dict(((th,per,alg,par,buf),data) for (th,per,alg,par,buf,pkt),data in plotData.items() if pkt == n),
-            ymin       = 60,
-            ymax       = ymax[n],
-            ylabel     = 'time for last packet to reach root',
-            filename   = 'time_all_root_vs_threshold_pkt_{}'.format(n),
-        )
+#    for n in getNumPacketsBurst(plotData):
+#        plot_vs_threshold(
+#            plotData   = dict(((th,per,alg,par,buf),data) for (th,per,alg,par,buf,pkt),data in plotData.items() if pkt == n),
+#            ymin       = 60,
+#            ymax       = ymax[n],
+#            ylabel     = 'time for last packet to reach root',
+#            filename   = 'time_all_root_vs_threshold_pkt_{}'.format(n),
+#        )
+   
+
+    plot_vs_threshold(
+        plotData   = dict(((th,per,alg,par,pkt),data) for (th,per,alg,par,buf,pkt),data in plotData.items() if buf == 100 and pkt in [5, 25]),
+        ymin       = 60,
+        ymax       = 100,
+        ylabel     = 'time for last packet to reach root',
+        filename   = 'time_all_root_vs_threshold_buf_100',
+        legend = '(num of parents, packets per burst)'
+    )
+
+
 
 #===== numCells
 
@@ -1619,16 +1650,18 @@ def main():
 
     dataBins = binDataFiles()
 
-#    plot_time_all_reached_vs_threshold(dataBins)
-#    plot_max_latency_vs_threshold(dataBins)
+    plot_time_all_reached_vs_threshold(dataBins)
+    plot_max_latency_vs_threshold(dataBins)
 #    plot_latency_vs_threshold(dataBins)
 #    plot_max_queue_delay_vs_threshold(dataBins)
 #    plot_ave_q_delay_vs_threshold(dataBins)
 #    plot_numRxCells_vs_time(dataBins)
 #    plot_chargeConsumed_vs_time(dataBins)
-#    plot_chargeConsumed_vs_threshold(dataBins)
+    plot_chargeConsumed_vs_threshold(dataBins)
 #    plot_reliability_vs_time(dataBins)
-    plot_reliability_vs_threshold(dataBins)
+#    plot_reliability_vs_threshold(dataBins)
+
+
 #  OLD PLOTS
 
 #    plot_txQueueFill_vs_time(dataBins)
