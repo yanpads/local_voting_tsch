@@ -747,7 +747,7 @@ def plot_latency_vs_threshold(dataBins):
 
     plot_vs_threshold(
         plotData=dict(((th, per, alg, par, pkt), data) for (th, per, alg, par, buf, pkt), data in plotData.items() if
-                      buf == 100 and pkt in [5, 25]),
+                      buf == 100 and pkt in [1, 5, 25]),
         ymin=0,
         ymax=100,
         ylabel='average end-to-end latency (s)',
@@ -760,7 +760,7 @@ def plot_txQueueFill_vs_threshold(dataBins):
 
     plot_vs_threshold(
         plotData=dict(((th, per, alg, par, pkt), data) for (th, per, alg, par, buf, pkt), data in plotData.items() if
-                      buf == 100 and pkt in [5, 25]),
+                      buf == 100 and pkt in [1, 5, 25]),
         ymin=0,
         ymax=40,
         ylabel='average queue size (packets)',
@@ -773,7 +773,7 @@ def plot_max_txQueueFill_vs_threshold(dataBins):
 
     plot_vs_threshold(
         plotData=dict(((th, per, alg, par, pkt), data) for (th, per, alg, par, buf, pkt), data in plotData.items() if
-                      buf == 100 and pkt in [5, 25]),
+                      buf == 100 and pkt in [1, 5, 25]),
         ymin=0,
         ymax=40,
         ylabel='max avg queue size (packets)',
@@ -789,7 +789,7 @@ def plot_ave_q_delay_vs_threshold(dataBins):
 
     plot_vs_threshold(
         plotData=dict(((th, per, alg, par, pkt), data) for (th, per, alg, par, buf, pkt), data in plotData.items() if
-                      buf == 100 and pkt in [5, 25]),
+                      buf == 100 and pkt in [1, 5, 25]),
         ymin       = 0,
         ymax       = 100,
         ylabel     = 'average queue delay (s)',
@@ -878,7 +878,8 @@ def plot_max_latency_vs_threshold(dataBins):
     ymax = { 1: 15, 5: 60, 25: 100 } 
 
     plot_vs_threshold(
-        plotData   = dict(((th,per,alg,par,pkt),data) for (th,per,alg,par,buf,pkt),data in plotData.items() if buf == 100 and pkt in [5,25]),
+        plotData=dict(((th, per, alg, par, pkt), data) for (th, per, alg, par, buf, pkt), data in plotData.items() if
+                      buf == 100 and pkt in [1, 5, 25]),
         ymin       = 0,
         ymax       = 100,
         ylabel     = 'max end-to-end latency (s)',
@@ -894,7 +895,7 @@ def plot_max_queue_delay_vs_threshold(dataBins):
     plot_vs_threshold(
         plotData=dict(
             ((th, per, alg, par, pkt), data) for (th, per, alg, par, buf, pkt), data in plotData.items() if
-            buf == 100 and pkt in [5, 25]),
+            buf == 100 and pkt in [1, 5, 25]),
         ymin       = 0,
         ymax       = 100,
         ylabel     = 'max queue delay (s)',
@@ -917,7 +918,8 @@ def plot_chargeConsumed_vs_threshold(dataBins):
 #            filename   = 'chargeConsumed_vs_threshold_pkt_{}'.format(n),
 #        )
     plot_vs_threshold(
-        plotData   = dict(((th,per,alg,par,pkt),data) for (th,per,alg,par,buf,pkt),data in charge.items() if buf == 100 and pkt in [5,25]),
+        plotData=dict(((th, per, alg, par, pkt), data) for (th, per, alg, par, buf, pkt), data in charge.items() if
+                      buf == 100 and pkt in [1, 5, 25]),
         ymin       = 0,
         ymax       = 20,
         ylabel     = 'charge consumed x1e5',
@@ -937,7 +939,9 @@ def plot_chargeConsumed_vs_threshold(dataBins):
     print "charge_per_packet: ", charge_per_packet
 
     plot_vs_threshold(
-        plotData   = dict(((th,per,alg,par,pkt),data) for (th,per,alg,par,buf,pkt),data in charge_per_packet.items() if buf == 100 and pkt in [5,25]),
+        plotData=dict(
+            ((th, per, alg, par, pkt), data) for (th, per, alg, par, buf, pkt), data in charge_per_packet.items() if
+            buf == 100 and pkt in [1, 5, 25]),
         ymin       = 0,
         ymax       = 0.01,
         ylabel     = 'charge consumed/packet received x1e5',
@@ -981,7 +985,8 @@ def plot_time_all_reached_vs_threshold(dataBins):
    
 
     plot_vs_threshold(
-        plotData   = dict(((th,per,alg,par,pkt),data) for (th,per,alg,par,buf,pkt),data in plotData.items() if buf == 100 and pkt in [5, 25]),
+        plotData=dict(((th, per, alg, par, pkt), data) for (th, per, alg, par, buf, pkt), data in plotData.items() if
+                      buf == 100 and pkt in [1, 5, 25]),
         ymin       = 60,
         ymax       = 100,
         ylabel     = 'time for last packet to reach root',
