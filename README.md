@@ -12,82 +12,37 @@ Some indicative results:
 Aggregated Values vs parameters
 ===============================
 
-1 packet(s) per node per burst
-------------------------------
-### chargeConsumed, 1 packets/node/burst
-![chargeConsumed](bin/simData/chargeConsumed_vs_threshold_pkt_1.png)
+### time_all_root
+![time_all_root](bin/simData/time_all_root_vs_threshold_buf_100.png)
 
-### reliability, 1 packets/node/burst
-![reliability](bin/simData/reliability_vs_threshold_pkt_1.png)
+### max_latency
+![max_latency](bin/simData/max_latency_vs_threshold_buf_100.png)
 
-### time_all_root, 1 packets/node/burst
-![time_all_root](bin/simData/time_all_root_vs_threshold_pkt_1.png)
+### latency
+![latency](bin/simData/latency_vs_threshold_buf_100.png)
 
-### max_latency, 1 packets/node/burst
-![max_latency](bin/simData/max_latency_vs_threshold_pkt_1.png)
+### chargeConsumedPerRecv
+![chargeConsumedPerRecv](bin/simData/chargeConsumedPerRecv_vs_threshold_buf_100.png)
 
-### latency, 1 packets/node/burst
-![latency](bin/simData/latency_vs_threshold_pkt_1.png)
+### chargeConsumed
+![chargeConsumed](bin/simData/chargeConsumed_vs_threshold_buf_100.png)
 
-### max_queue_delay, 1 packets/node/burst
-![max_queue_delay](bin/simData/max_queue_delay_vs_threshold_pkt_1.png)
+### reliability
+![reliability](bin/simData/reliability_vs_threshold_buf_100.png)
 
-### queue_delay, 1 packets/node/burst
-![queue_delay](bin/simData/queue_delay_vs_threshold_pkt_1.png)
+### max_txQueueFill
+![max_txQueueFill](bin/simData/max_txQueueFill_vs_threshold_buf_100.png)
 
-5 packet(s) per node per burst
-------------------------------
-### chargeConsumed, 5 packets/node/burst
-![chargeConsumed](bin/simData/chargeConsumed_vs_threshold_pkt_5.png)
-
-### reliability, 5 packets/node/burst
-![reliability](bin/simData/reliability_vs_threshold_pkt_5.png)
-
-### time_all_root, 5 packets/node/burst
-![time_all_root](bin/simData/time_all_root_vs_threshold_pkt_5.png)
-
-### max_latency, 5 packets/node/burst
-![max_latency](bin/simData/max_latency_vs_threshold_pkt_5.png)
-
-### latency, 5 packets/node/burst
-![latency](bin/simData/latency_vs_threshold_pkt_5.png)
-
-### max_queue_delay, 5 packets/node/burst
-![max_queue_delay](bin/simData/max_queue_delay_vs_threshold_pkt_5.png)
-
-### queue_delay, 5 packets/node/burst
-![queue_delay](bin/simData/queue_delay_vs_threshold_pkt_5.png)
-
-25 packet(s) per node per burst
-------------------------------
-### chargeConsumed, 25 packets/node/burst
-![chargeConsumed](bin/simData/chargeConsumed_vs_threshold_pkt_25.png)
-
-### reliability, 25 packets/node/burst
-![reliability](bin/simData/reliability_vs_threshold_pkt_25.png)
-
-### time_all_root, 25 packets/node/burst
-![time_all_root](bin/simData/time_all_root_vs_threshold_pkt_25.png)
-
-### max_latency, 25 packets/node/burst
-![max_latency](bin/simData/max_latency_vs_threshold_pkt_25.png)
-
-### latency, 25 packets/node/burst
-![latency](bin/simData/latency_vs_threshold_pkt_25.png)
-
-### max_queue_delay, 25 packets/node/burst
-![max_queue_delay](bin/simData/max_queue_delay_vs_threshold_pkt_25.png)
-
-### queue_delay, 25 packets/node/burst
-![queue_delay](bin/simData/queue_delay_vs_threshold_pkt_25.png)
+### txQueueFill
+![txQueueFill](bin/simData/txQueueFill_vs_threshold_buf_100.png)
 
 Some indicative scenarios
 ===================
 
-Scenario buffer: 100, parents: 1, packets: 25
+Scenario parents: 1, packets: 25
 ------------------------------
-### chargeConsumed
-![chargeConsumed](bin/simData/chargeConsumed_vs_time_buf_100_par_1_pkt_25.png)
+### appGenerated_cum
+![appGenerated_cum](bin/simData/appGenerated_cum_vs_time_buf_100_par_1_pkt_25.png)
 
 ### appReachesDagroot_cum
 ![appReachesDagroot_cum](bin/simData/appReachesDagroot_cum_vs_time_buf_100_par_1_pkt_25.png)
@@ -95,16 +50,22 @@ Scenario buffer: 100, parents: 1, packets: 25
 ### appReachesDagroot
 ![appReachesDagroot](bin/simData/appReachesDagroot_vs_time_buf_100_par_1_pkt_25.png)
 
-### txQueueFill
-![txQueueFill](bin/simData/txQueueFill_vs_time_buf_100_par_1_pkt_25.png)
+### chargeConsumed
+![chargeConsumed](bin/simData/chargeConsumed_vs_time_buf_100_par_1_pkt_25.png)
+
+### latency
+![latency](bin/simData/latency_vs_time_buf_100_par_1_pkt_25.png)
 
 ### numRxCells
 ![numRxCells](bin/simData/numRxCells_vs_time_buf_100_par_1_pkt_25.png)
 
-Scenario buffer: 100, parents: 2, packets: 5
+### txQueueFill
+![txQueueFill](bin/simData/txQueueFill_vs_time_buf_100_par_1_pkt_25.png)
+
+Scenario parents: 2, packets: 25
 ------------------------------
-### chargeConsumed
-![chargeConsumed](bin/simData/chargeConsumed_vs_time_buf_100_par_2_pkt_25.png)
+### appGenerated_cum
+![appGenerated_cum](bin/simData/appGenerated_cum_vs_time_buf_100_par_2_pkt_25.png)
 
 ### appReachesDagroot_cum
 ![appReachesDagroot_cum](bin/simData/appReachesDagroot_cum_vs_time_buf_100_par_2_pkt_25.png)
@@ -112,33 +73,63 @@ Scenario buffer: 100, parents: 2, packets: 5
 ### appReachesDagroot
 ![appReachesDagroot](bin/simData/appReachesDagroot_vs_time_buf_100_par_2_pkt_25.png)
 
-### txQueueFill
-![txQueueFill](bin/simData/txQueueFill_vs_time_buf_100_par_2_pkt_25.png)
+### chargeConsumed
+![chargeConsumed](bin/simData/chargeConsumed_vs_time_buf_100_par_2_pkt_25.png)
+
+### latency
+![latency](bin/simData/latency_vs_time_buf_100_par_2_pkt_25.png)
 
 ### numRxCells
 ![numRxCells](bin/simData/numRxCells_vs_time_buf_100_par_2_pkt_25.png)
 
-Scenario buffer: 10, parents: 3, packets: 1
+### txQueueFill
+![txQueueFill](bin/simData/txQueueFill_vs_time_buf_100_par_2_pkt_25.png)
+
+Scenario parents: 3, packets: 25
 ------------------------------
-### chargeConsumed
-![chargeConsumed](bin/simData/chargeConsumed_vs_time_buf_10_par_3_pkt_25.png)
+### appGenerated_cum
+![appGenerated_cum](bin/simData/appGenerated_cum_vs_time_buf_100_par_3_pkt_25.png)
 
 ### appReachesDagroot_cum
-![appReachesDagroot_cum](bin/simData/appReachesDagroot_cum_vs_time_buf_10_par_3_pkt_25.png)
+![appReachesDagroot_cum](bin/simData/appReachesDagroot_cum_vs_time_buf_100_par_3_pkt_25.png)
 
 ### appReachesDagroot
-![appReachesDagroot](bin/simData/appReachesDagroot_vs_time_buf_10_par_3_pkt_25.png)
+![appReachesDagroot](bin/simData/appReachesDagroot_vs_time_buf_100_par_3_pkt_25.png)
 
-### txQueueFill
-![txQueueFill](bin/simData/txQueueFill_vs_time_buf_10_par_3_pkt_25.png)
+### chargeConsumed
+![chargeConsumed](bin/simData/chargeConsumed_vs_time_buf_100_par_3_pkt_25.png)
+
+### latency
+![latency](bin/simData/latency_vs_time_buf_100_par_3_pkt_25.png)
 
 ### numRxCells
-![numRxCells](bin/simData/numRxCells_vs_time_buf_10_par_3_pkt_25.png)
+![numRxCells](bin/simData/numRxCells_vs_time_buf_100_par_3_pkt_25.png)
 
+### txQueueFill
+![txQueueFill](bin/simData/txQueueFill_vs_time_buf_100_par_3_pkt_25.png)
 
+Scenario parents: 3, packets: 5
+------------------------------
+### appGenerated_cum
+![appGenerated_cum](bin/simData/appGenerated_cum_vs_time_buf_100_par_3_pkt_25.png)
 
+### appReachesDagroot_cum
+![appReachesDagroot_cum](bin/simData/appReachesDagroot_cum_vs_time_buf_100_par_3_pkt_25.png)
 
+### appReachesDagroot
+![appReachesDagroot](bin/simData/appReachesDagroot_vs_time_buf_100_par_3_pkt_25.png)
 
+### chargeConsumed
+![chargeConsumed](bin/simData/chargeConsumed_vs_time_buf_100_par_3_pkt_25.png)
+
+### latency
+![latency](bin/simData/latency_vs_time_buf_100_par_3_pkt_25.png)
+
+### numRxCells
+![numRxCells](bin/simData/numRxCells_vs_time_buf_100_par_3_pkt_25.png)
+
+### txQueueFill
+![txQueueFill](bin/simData/txQueueFill_vs_time_buf_100_par_3_pkt_25.png)
 
 
 The Remainder of this document is orginal README from the parent repository,
