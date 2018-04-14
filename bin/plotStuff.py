@@ -943,7 +943,7 @@ def plot_chargeConsumed_vs_threshold(dataBins):
             ((th, per, alg, par, pkt), data) for (th, per, alg, par, buf, pkt), data in charge_per_packet.items() if
             buf == 100 and pkt in [1, 5, 25]),
         ymin       = 0,
-        ymax       = 0.01,
+        ymax       = 0.08,
         ylabel     = 'charge consumed/packet received x1e5',
         filename   = 'chargeConsumedPerRecv_vs_threshold_buf_100',
         legend = '(packets per burst, num of parents)'
