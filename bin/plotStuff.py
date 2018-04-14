@@ -1720,21 +1720,21 @@ def main():
 
     dataBins = binDataFiles()
 
-#    plot_time_all_reached_vs_threshold(dataBins)
-#    plot_max_latency_vs_threshold(dataBins)
-#    plot_latency_vs_threshold(dataBins)
-#    plot_latency_vs_time(dataBins) ### Good for 25,1
+    plot_time_all_reached_vs_threshold(dataBins)
+    plot_max_latency_vs_threshold(dataBins)
+    plot_latency_vs_threshold(dataBins)
+    plot_latency_vs_time(dataBins) ### Good for 25,1
 
-#    plot_numRxCells_vs_time(dataBins)
+    plot_numRxCells_vs_time(dataBins)
 
-#    plot_chargeConsumed_vs_threshold(dataBins)
-#    plot_chargeConsumed_vs_time(dataBins)
+    plot_chargeConsumed_vs_threshold(dataBins)
+    plot_chargeConsumed_vs_time(dataBins)
 
 
     plot_reliability_vs_threshold(dataBins)
-#    plot_reliability_vs_time(dataBins)
-#    plot_txQueueFill_vs_threshold(dataBins)
-#    plot_max_txQueueFill_vs_threshold(dataBins)
+    plot_reliability_vs_time(dataBins)
+    plot_txQueueFill_vs_threshold(dataBins)
+    plot_max_txQueueFill_vs_threshold(dataBins)
 
     ### need to rerun scenario for these, it gives sum of avg, instead of
     ### avg of avg due multiple motes
