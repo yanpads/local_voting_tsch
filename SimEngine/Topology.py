@@ -35,8 +35,8 @@ class Topology(object):
     PISTER_HACK_LOWER_SHIFT  = 40           # -40 dB
     SPEED_OF_LIGHT           = 299792458    # m/s
     
-    STABLE_RSSI              = -93.6        # dBm, corresponds to PDR = 0.5 (see rssiPdrTable below)
-    STABLE_NEIGHBORS         = 3
+    STABLE_RSSI              =  -89   #dbm, 1 PDR
+    STABLE_NEIGHBORS         = 1
     
     def __init__(self, motes):
         
@@ -45,6 +45,8 @@ class Topology(object):
         
         # local variables
         self.settings        = SimSettings.SimSettings()
+
+	self.starTopology=False
         
     #======================== public ==========================================
     
@@ -75,7 +77,6 @@ class Topology(object):
         for mote in self.motes:
             if mote in connectedMotes:
                 continue
-            
             connected = False
             while not connected:
                 # pick a random location
@@ -85,37 +86,61 @@ class Topology(object):
                 )
                 
                 numStableNeighbors = 0
-                
-                # count number of neighbors with sufficient RSSI
-                for cm in connectedMotes:
-                    
-                    rssi = self._computeRSSI(mote, cm)
-                    mote.setRSSI(cm, rssi)
-                    cm.setRSSI(mote, rssi)
-                    
-                    if rssi>self.STABLE_RSSI:
-                        numStableNeighbors += 1
+                if self.starTopology==False:
+		        # count number of neighbors with sufficient RSSI
+		        for cm in connectedMotes:
+		            
+		            rssi = self._computeRSSI(mote, cm)
+		            mote.setRSSI(cm, rssi)
+		            cm.setRSSI(mote, rssi)
+		            
+		            if rssi>self.STABLE_RSSI:
+		                numStableNeighbors += 1
+                	# make sure it is connected to at least STABLE_NEIGHBORS motes 
+                	# or connected to all the currently deployed motes when the number of deployed motes 
+                	# are smaller than STABLE_NEIGHBORS
+                	if numStableNeighbors >= self.STABLE_NEIGHBORS or numStableNeighbors == len(connectedMotes):
+                    		connected = True
 
-                # make sure it is connected to at least STABLE_NEIGHBORS motes 
-                # or connected to all the currently deployed motes when the number of deployed motes 
-                # are smaller than STABLE_NEIGHBORS
-                if numStableNeighbors >= self.STABLE_NEIGHBORS or numStableNeighbors == len(connectedMotes):
-                    connected = True
+
+                else:
+		        #emunicio star topology
+		        rssi = self._computeRSSI(mote, dagRoot)
+		        mote.setRSSI(dagRoot, rssi)
+		        dagRoot.setRSSI(mote, rssi)
+		        if rssi>self.STABLE_RSSI:
+		            connected = True
+                    
+                #add here more topologies
+                
             
             connectedMotes += [mote]
+
+
+        if self.starTopology==False:
+		# for each mote, compute PDR to each neighbors
+		for mote in self.motes:
+		    for m in self.motes:
+		        if mote==m:
+		            continue
+		        if mote.getRSSI(m)>mote.minRssi:
+		            pdr = self._computePDR(mote,m)
+		            mote.setPDR(m,pdr)
+		            m.setPDR(mote,pdr)
+        else:
         
-        # for each mote, compute PDR to each neighbors
-        for mote in self.motes:
-            for m in self.motes:
-                if mote==m:
-                    continue
-                if mote.getRSSI(m)>mote.minRssi:
-                    pdr = self._computePDR(mote,m)
-                    mote.setPDR(m,pdr)
-                    m.setPDR(mote,pdr)
-        
-        # print topology information
-        '''
+		#emunicio star topology
+		for m in self.motes:
+		    if dagRoot==m:
+		        continue
+		    if dagRoot.getRSSI(m)>dagRoot.minRssi:
+		        pdr = self._computePDR(dagRoot,m)
+		        dagRoot.setPDR(m,pdr)
+		        m.setPDR(dagRoot,pdr)
+
+	#add here more topologies
+                
+        # print topology information       
         for mote in self.motes:
             for neighbor in self.motes:
                 try:
@@ -123,16 +148,7 @@ class Topology(object):
                     rssi     = mote.getRSSI(neighbor)
                     pdr      = mote.getPDR(neighbor)
                 except KeyError:
-                    pass
-                else:
-                    print "mote = {0:>3}, neigh = {1:<3}, dist = {2:>3}m, rssi = {3:>3}dBm, pdr = {4:.3f}%".format(
-                        mote.id,
-                        neighbor.id,
-                        int(distance),
-                        int(rssi),
-                        100*pdr
-                    )
-        '''
+                    pass   
     
     #======================== private =========================================
     
@@ -153,7 +169,7 @@ class Topology(object):
     
         # the receiver will receive the packet with an rssi uniformly distributed between friis and friis -40
         rssi = mu + random.uniform(-self.PISTER_HACK_LOWER_SHIFT/2, self.PISTER_HACK_LOWER_SHIFT/2)
-        
+        #print "RSSI "+str(rssi)
         return rssi
     
     def _computePDR(self,mote,neighbor):
@@ -207,7 +223,7 @@ class Topology(object):
         
         assert pdr>=0.0
         assert pdr<=1.0
-        
+         
         return pdr
     
     def _computeDistance(self,mote,neighbor):

@@ -99,7 +99,7 @@ def parseCliOptions():
         dest       = 'pkPeriod',
         nargs      = '+',
         type       = float,
-#        default    = [16, 8, 4, 2, 1, 0.5],
+        default    = [16, 8, 4, 2, 1, 0.5],
         help       = '[app] Average period between two data packets (s).',
     )
     parser.add_argument( '--pkPeriodVar',
@@ -203,7 +203,7 @@ def parseCliOptions():
         nargs      = '+',
         type       = int,
         default    = 0,
-        help       = '[phy] Disable interference model.',
+        help       = '[phy] Disable interference model.',   # wont work without intereference
     )
     parser.add_argument('--algorithm',
         dest       = 'algorithm',
@@ -227,6 +227,41 @@ def parseCliOptions():
         help       = 'Select the number of parents for the rpl protocol, 1, 2, or 3',
     )
 
+    parser.add_argument('--scheduler',
+        dest       = 'scheduler',
+        nargs      = '+',
+        type       = str,
+        default    = 'deBras',
+        help       = '[tsch] Choose the schedule model.',
+    )
+    parser.add_argument('--otfenabled',
+        dest       = 'otfEnabled',
+        nargs      = '+',
+        type       = bool,
+        default    = True,
+        help       = '[otf] Chose between otf on/off.',
+    )
+    parser.add_argument('--numBroadcastCells',
+        dest       = 'numBroadcastCells',
+        nargs      = '+',
+        type       = int,
+        default    = 3,
+        help       = '[tsch] number of broadcast cells (per channel).',
+    )
+    parser.add_argument('--overlappingBrCells',
+        dest       = 'overlappingBrCells',
+        nargs      = '+',
+        type       = float,
+        default    = 0,
+        help       = '[tsch] % of overlapping allowed  in broadcast cells.',    #not used anymore
+    )
+    parser.add_argument('--generateIndividualSummarys',
+        dest       = 'generateIndividualSummarys',
+        nargs      = '+',
+        type       = bool,
+        default    = False,
+        help       = '[debug] add individual summarys per node for Throughput.',
+    )
     
     options        = parser.parse_args()
     
@@ -234,13 +269,13 @@ def parseCliOptions():
 
 def printOrLog(simParam,output):
     if simParam['cpuID']!=None:
+	print output
         with open('cpu{0}.templog'.format(simParam['cpuID']),'w') as f:
             f.write(output)
     else:
         print output
 
 def runSims(options):
-    
     # record simulation start time
     simStartTime   = time.time()
     
@@ -273,6 +308,7 @@ def runSims(options):
                runNum+1,
                simParam['numRuns']
             )
+
             printOrLog(simParam,output)
             
             # create singletons

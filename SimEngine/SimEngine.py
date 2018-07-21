@@ -26,6 +26,7 @@ import Propagation
 import Topology
 import Mote
 import SimSettings
+import inspect
 
 #============================ defines =========================================
 
@@ -71,17 +72,53 @@ class SimEngine(threading.Thread):
         self.motes                          = [Mote.Mote(id) for id in range(self.settings.numMotes)]
         self.topology                       = Topology.Topology(self.motes)
         self.topology.createTopology()
-        
+
         # boot all motes
         for i in range(len(self.motes)):
             self.motes[i].boot()
         
+        self.initTimeStampTraffic          = 0
+        self.endTimeStampTraffic           = 0       
+        
         # initialize parent class
         threading.Thread.__init__(self)
+        #print "Initialized Parent class"
         self.name                           = 'SimEngine'
+        self.scheduler=self.settings.scheduler
+        
+
+	#emunicio
+        self.timeElapsedFlow=0        
+        self.totalTx=0
+        self.totalRx=0
+        self.dropByCollision=0
+        self.dropByPropagation=0
+        self.bcstReceived=0
+        self.bcstTransmitted=0
+	self.packetsSentToRoot=0  #total packets sent from all nodes to the root node
+        self.packetReceivedInRoot=0 #total packets sent from all nodes to the root node
+	self.olGeneratedToRoot=0  #average throughput generated	
+	self.thReceivedInRoot=0   #average throughput received
+     
+        # emunicio settings
+        self.numBroadcastCell=self.settings.numBroadcastCells
+        
+        
+                      
     
     def destroy(self):
-        # destroy the propagation singleton
+        
+        print "Drops by collision "+str(self.dropByCollision)
+	print "Drops by propagation "+str(self.dropByPropagation)
+        print "Broadcast received "+str(self.bcstReceived)
+        print "Broadcast sent "+str(self.bcstTransmitted)
+        if self.bcstTransmitted!=0: #avoiding zero division
+            print "Broadcast PER "+str(float(self.bcstReceived)/self.bcstTransmitted)
+        
+        print "TX total "+str(self.totalTx)
+        print "RX total "+str(self.totalRx)
+        print "PER "+str(float(self.totalRx)/self.totalTx) if self.totalTx >0 else "PER 0"
+
         self.propagation.destroy()
         
         # destroy my own instance
@@ -92,10 +129,10 @@ class SimEngine(threading.Thread):
     
     def run(self):
         ''' event driven simulator, this thread manages the events '''
-        
+        #print "Initializing parent "+ str(len(self.startCb))
         # log
         log.info("thread {0} starting".format(self.name))
-        
+        #print "Simulating nodes: "+str(self.settings.numMotes)
         # schedule the endOfSimulation event
         self.scheduleAtAsn(
             asn         = self.settings.slotframeLength*self.settings.numCyclesPerRun,
@@ -116,15 +153,21 @@ class SimEngine(threading.Thread):
                 if not self.events:
                     log.info("end of simulation at ASN={0}".format(self.asn))
                     break
+                               
+                #emunicio, to avoid errors when exectuing step by step
+		(a,b,cb,c)=self.events[0]
+                if c[1]!='_actionPauseSim':                 
+                       assert self.events[0][0] >= self.asn
                 
-                # make sure we are in the future
+		# make sure we are in the future
                 assert self.events[0][0] >= self.asn
-                
+
                 # update the current ASN
                 self.asn = self.events[0][0]
                 
                 # call callbacks at this ASN
                 while True:
+                        
                     if self.events[0][0]!=self.asn:
                         break
                     (_,_,cb,_) = self.events.pop(0)
@@ -139,6 +182,14 @@ class SimEngine(threading.Thread):
     
     #======================== public ==========================================
     
+    #emunicio    
+    def incrementStatDropByCollision(self):
+        self.dropByCollision+=1
+     
+    def incrementStatDropByPropagation(self):  
+        self.dropByPropagation+=1
+
+
     #=== scheduling
     
     def scheduleAtStart(self,cb):
@@ -150,7 +201,6 @@ class SimEngine(threading.Thread):
         
         with self.dataLock:
             asn = int(self.asn+(float(delay)/float(self.settings.slotDuration)))
-            
             self.scheduleAtAsn(asn,cb,uniqueTag,priority,exceptCurrentASN)
     
     def scheduleAtAsn(self,asn,cb,uniqueTag=None,priority=0,exceptCurrentASN=True):
@@ -171,7 +221,7 @@ class SimEngine(threading.Thread):
                 i +=1
             
             # add to schedule
-            self.events.insert(i,(asn,priority,cb,uniqueTag))
+            self.events.insert(i,(asn,priority,cb,uniqueTag))           
     
     def removeEvent(self,uniqueTag,exceptCurrentASN=True):
         with self.dataLock:
@@ -192,6 +242,7 @@ class SimEngine(threading.Thread):
         self._actionResumeSim()
     
     def pauseAtAsn(self,asn):
+        #print "Pausing simulation"
         if not self.simPaused:
             self.scheduleAtAsn(
                 asn         = asn,
@@ -203,7 +254,7 @@ class SimEngine(threading.Thread):
     
     def getAsn(self):
         return self.asn
-    
+        
     #======================== private =========================================
     
     def _actionPauseSim(self):
@@ -217,5 +268,10 @@ class SimEngine(threading.Thread):
             self.pauseSem.release()
     
     def _actionEndSim(self):
+        
         with self.dataLock:
             self.goOn = False
+            	    
+            for mote in self.motes:
+                mote._log_printEndResults()
+

@@ -75,6 +75,7 @@ class SimStats(object):
         self.engine.scheduleAtEnd(
             cb          = self._actionEnd,
         )
+        
     
     def destroy(self):
         # destroy my own instance
@@ -85,6 +86,8 @@ class SimStats(object):
     
     def _actionStart(self):
         '''Called once at beginning of the simulation.'''
+	#schedule a pause
+        #self.engine.pauseAtAsn(13130)
         pass
     
     def _actionEndCycle(self):
@@ -92,9 +95,16 @@ class SimStats(object):
         
         cycle = int(self.engine.getAsn()/self.settings.slotframeLength)
         
-        # print
-        if self.settings.cpuID==None:
-            print('   cycle: {0}/{1}'.format(cycle,self.settings.numCyclesPerRun-1))
+	#emunicio        
+	# start probing at cycle 63 
+        if (self.engine.asn > (63*self.settings.slotframeLength)) and self.engine.initTimeStampTraffic==0:	
+            self.engine.initTimeStampTraffic=self.engine.asn*self.settings.slotDuration
+
+        # stop probing at cycle 96   
+        if (self.engine.asn >= (96*self.settings.slotframeLength)) and self.engine.endTimeStampTraffic==0:
+            self.engine.endTimeStampTraffic=self.engine.asn*self.settings.slotDuration
+            self.engine.timeElapsedFlow=self.engine.endTimeStampTraffic-self.engine.initTimeStampTraffic        
+            print "Elapsed time: "+str(self.engine.timeElapsedFlow)        
         
         # write statistics to output file
         self._fileWriteStats(
@@ -113,6 +123,17 @@ class SimStats(object):
             asn         = self.engine.getAsn()+self.settings.slotframeLength,
             cb          = self._actionEndCycle,
             uniqueTag   = (None,'_actionEndCycle'),
+            priority    = 10,
+        )
+        
+    def _actionEndSecond(self):
+        '''Called at each end of cycle.'''
+                
+        # schedule next statistics collection
+        self.engine.scheduleAtAsn(
+            asn         = self.engine.getAsn()+100,
+            cb          = self._actionEndSecond,
+            uniqueTag   = (None,'_actionEndSecond'),
             priority    = 10,
         )
     
@@ -134,7 +155,9 @@ class SimStats(object):
                     returnVal[k] += moteStats[k]
         
         return returnVal
+
     
+        
     def _collectScheduleStats(self):
         
         # compute the number of schedule collisions
@@ -144,7 +167,7 @@ class SimStats(object):
         scheduleCollisions = 0
         txCells = []
         for mote in self.engine.motes:
-            for (ts,cell) in mote.schedule.items():
+            for ((ts,chan),cell) in mote.schedule.items():
                 (ts,ch) = (ts,cell['ch'])
                 if cell['dir']==mote.DIR_TX:
                     if (ts,ch) in txCells:
@@ -155,7 +178,7 @@ class SimStats(object):
         # collect collided links
         txLinks = {}
         for mote in self.engine.motes:
-            for (ts,cell) in mote.schedule.items():
+            for ((ts,chan),cell) in mote.schedule.items():
                 if cell['dir']==mote.DIR_TX:
                     (ts,ch) = (ts,cell['ch'])
                     (tx,rx) = (mote,cell['neighbor'])
@@ -170,7 +193,7 @@ class SimStats(object):
         collidedTxs = 0
         for links in collidedLinks:
             collidedTxs += len(links)
-        
+              
         # compute the number of effective collided Tx    
         effectiveCollidedTxs = 0
         insufficientLength   = 0 
@@ -179,10 +202,8 @@ class SimStats(object):
                 for (tx2,rx2) in links:
                     if tx1!=tx2 and rx1!=rx2:
                         # check whether interference from tx1 to rx2 is effective
-                        if tx1.getRSSI(rx2) > rx2.minRssi:
+                        if tx1.getRSSI(rx2) >= rx2.minRssi:
                             effectiveCollidedTxs += 1
-                            
-                            
         return {'scheduleCollisions':scheduleCollisions, 'collidedTxs': collidedTxs, 'effectiveCollidedTxs': effectiveCollidedTxs}
     
     #=== writing to file
@@ -246,12 +267,23 @@ class SimStats(object):
                 ' '.join(['{0}-{1}@{2:.0f}dBm@{3:.3f}'.format(moteA.id,moteB.id,rssi,pdr) for ((moteA,moteB),(rssi,pdr)) in links.items()])
             )
         ]
+	#emunicio
+	output += [
+            '#results runNum={0} totalPacketSent {1} totalPacketReceived {2} totalOLGenerated {3} totalThReceived {4} dropsByCollisions {5} totalTX {6} totalRX {7} dropsPropagation {8} -'.format(
+                self.runNum,self.engine.packetsSentToRoot,self.engine.packetReceivedInRoot,self.engine.olGeneratedToRoot/(self.settings.numMotes-1),self.engine.thReceivedInRoot/(self.settings.numMotes-1), self.engine.dropByCollision, self.engine.totalTx, self.engine.totalRx, self.engine.dropByPropagation 
+            )
+        ]
+
         output += [
             '#aveChargePerCycle runNum={0} {1}'.format(
                 self.runNum,
                 ' '.join(['{0}@{1:.2f}'.format(mote.id,mote.getMoteStats()['chargeConsumed']/self.settings.numCyclesPerRun) for mote in self.engine.motes])
             )
-        ]        
+        ] 
+	
+	output += [ ''
+        ]
+	       
         output  = '\n'.join(output)
         
         with open(self.settings.getOutputFile(),'a') as f:
