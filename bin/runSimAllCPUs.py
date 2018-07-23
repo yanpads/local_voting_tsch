@@ -11,18 +11,24 @@ import math
 import multiprocessing
 import fileinput
 
-MIN_TOTAL_RUNRUNS = 500 # 94 # 500
+MIN_TOTAL_RUNRUNS = 10 # 500 # 94 # 500
 
 def runOneSim(params):
-    (cpuID,numRuns,host) = params
-    command     = ['ssh {0} "cd $PWD;'.format(host)]
-    command    += ['$HOME/local/bin/python runSimOneCPU.py']
+    (cpuID,numRuns) = params
+    command     = []
+    # command     = ['ssh {0} "cd $PWD;'.format(host)]
+    command    = ['python runSimOneCPU.py']
     command    += ['--numRuns {0}'.format(numRuns)]
     command    += ['--cpuID {0}'.format(cpuID)]
     # command    += ['--numPacketsBurst {0}'.format(5)]
     command    += ['--burstTimestamp {0}'.format(20)]
+    command    += ['--pkPeriod {0}'.format(16)]
+    command    += ['--buffer {0}'.format(100)]
+    command    += ['--algorithm {0}'.format('local_voting')]
+    command    += ['--otfThreshold {0}'.format(0)]
+    command    += ['--scheduler {0}'.format('deBras')]
     # command    += ['--numChans {0}'.format(1)]
-    command    += ['"']
+    # command    += ['"']
     #command    += ['&']
     command     = ' '.join(command)
     print "Executing command '{0}'".format(command)
@@ -64,11 +70,12 @@ def buildSshParams():
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()
-    ssh_params = buildSshParams()
-    print "The ssh params are {0}".format(ssh_params)
-    num_cpus = len(ssh_params) # multiprocessing.cpu_count()
+    # ssh_params = buildSshParams()
+    # print "The ssh params are {0}".format(ssh_params)
+    # num_cpus = len(ssh_params) # multiprocessing.cpu_count()
+    num_cpus = multiprocessing.cpu_count()
     runsPerCpu = int(math.ceil(float(MIN_TOTAL_RUNRUNS)/float(num_cpus)))
     pool = multiprocessing.Pool(num_cpus)
-    pool.map_async(runOneSim,[(i,runsPerCpu,ssh_params[i]) for i in range(num_cpus)])
+    pool.map_async(runOneSim,[(i,runsPerCpu) for i in range(num_cpus)])
     printProgress(num_cpus)
     raw_input("Done. Press Enter to close.")
