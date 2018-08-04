@@ -40,7 +40,7 @@ import threading
 from SimEngine     import SimEngine,   \
                           SimSettings, \
                           SimStats
-from SimGui        import SimGui
+# from SimGui        import SimGui # nogui
 
 #============================ defines =========================================
 
@@ -344,14 +344,14 @@ def main():
     
     if options['gui']:
         # create the GUI
-        gui        = SimGui.SimGui()
+        # gui        = SimGui.SimGui()  # no gui
         
         # run simulations (in separate thread)
         simThread  = threading.Thread(target=runSims,args=(options,))
         simThread.start()
         
         # start GUI's mainloop (in main thread)
-        gui.mainloop()
+        # gui.mainloop() # no gui
     else:        
         # run the simulations
         runSims(options)

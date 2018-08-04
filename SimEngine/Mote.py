@@ -83,7 +83,7 @@ class Mote(object):
     #=== 6top
     #=== tsch
     # TSCH_QUEUE_SIZE                    = 10 #   REMOVED, see self.settings.buffer
-    TSCH_MAXTXRETRIES                  = 5    
+    TSCH_MAXTXRETRIES                  = 25    # was 5
     #=== radio
     RADIO_MAXDRIFT                     = 30 # in ppm
     #=== battery
@@ -574,11 +574,24 @@ class Mote(object):
 
         with self.dataLock:
 
+            # calculate my total generated traffic, in pkt/s
+            genTraffic       = 0
+            # generated/relayed by me
+            for neighborOrMe in self.inTraffic:
+                genTraffic  += self.inTraffic[neighborOrMe]/self.otfHousekeepingPeriod
+
+            # reset the incoming traffic statistics, so they can build up until next housekeeping
+            self._otf_resetInboundTrafficCounters()
+
+            # convert to pkts/cycle
+            genTraffic      *= self.settings.slotframeLength*self.settings.slotDuration
             p_sum = self.settings.slotframeLength
 
             for dest, portion in self.trafficPortionPerParent.items():
                 q_ij = portion * len(self.txQueue) # if dest == self.preferredParent else 0 # all packets go to the same uplink
 
+                p_max_ij = math.ceil(portion * genTraffic + q_ij)
+                p_min_ij = 1
 
                 p_ij = sum(v['dir'] == 'TX' and v['neighbor'] == dest for v in self.schedule.values())
 
@@ -642,7 +655,7 @@ class Mote(object):
                     
                 if q_sum > 0:
 
-                    u_ij = int(round(q_ij * p_sum / (1.0 * q_sum))) - p_ij
+                    u_ij = int(max(p_min_ij,min(round(q_ij * p_sum / (1.0 * q_sum)), p_max_ij))) - p_ij
 
                     if u_ij > 0:
 #                       print "Trying to add u= ", u_ij, " cells for [",self.id,",",dest.id,"]"
@@ -654,10 +667,15 @@ class Mote(object):
                         self._sixtop_removeCells(dest, -u_ij)
 #                   print "time: %s src: %s dst: %s queue: %s schedule: %s (%s)" % (self.engine.asn, self.id, dest.id, q_ij, p_ij, u_ij)
 #                   print "q_ij= %s, p_sum = %s, q_sum= %s, p_ij= %s, p_sum1= %s" % (q_ij, p_sum, q_sum, p_ij, p_sum1)
-                elif q_ij == 0 and p_ij > 0:
+                elif q_ij == 0 and p_ij > p_min_ij:
                     self._stats_incrementMoteStats('otfRemove')
-                    self._sixtop_removeCells(dest, p_ij)
+                    self._sixtop_removeCells(dest, p_ij - p_min_ij)
+                elif p_ij < p_min_ij:
+                    self._stats_incrementMoteStats('otfAdd')
+                    self._sixtop_cell_reservation_request(dest, p_min_ij - p_ij)
 
+
+            # if len(self.parentSet) > 0:
             for dest in self._myNeigbors(): 
                 if dest not in self.parentSet:
                     p_dest = self._lv_get_p(dest)

@@ -500,7 +500,7 @@ def plot_vs_threshold(plotData,ymin,ymax,ylabel,filename,legend='(num of parents
 
 #    fig = matplotlib.pyplot.figure()
     fig, ax = matplotlib.pyplot.subplots()
-    matplotlib.pyplot.ylim(ymin=ymin,ymax=ymax)
+    # matplotlib.pyplot.ylim(ymin=ymin,ymax=ymax)
     ax.set_xlabel('Parameters: {0}'.format(legend))
     ax.set_ylabel(ylabel)
     bars = []
